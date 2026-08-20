@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum CampaignStatus {
+  PLANNING
+  ACTIVE
+  COMPLETE
+  CANCELLED
+}
+
+enum DeliverableType {
+  POST
+  REEL
+  STORY
+  VIDEO
+  LIVESTREAM
+  OTHER
+}
+
+enum DeliverableStatus {
+  PLANNED
+  IN_PROGRESS
+  SUBMITTED
+  APPROVED
+  LIVE
+}
+
+enum PayoutStatus {
+  PENDING
+  APPROVED
+  PAID
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+}
+
+model Brand {
+  id           String     @id @default(cuid())
+  name         String
+  contactName  String?
+  contactEmail String?
+  notes        String?
+  createdAt    DateTime   @default(now())
+  campaigns    Campaign[]
+  invoices     Invoice[]
+}
+
+model Creator {
+  id           String        @id @default(cuid())
+  name         String
+  handle       String?
+  platform     String? // e.g. Instagram, TikTok, YouTube
+  email        String?
+  rateCard     String? // free-text summary; can be normalized later
+  notes        String?
+  createdAt    DateTime      @default(now())
+  deliverables Deliverable[]
+}
+
+model Campaign {
+  id          String         @id @default(cuid())
+  name        String
+  brand       Brand          @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  brandId     String
+  budget      Decimal        @default(0) @db.Decimal(12, 2)
+  status      CampaignStatus @default(PLANNING)
+  startDate   DateTime?
+  endDate     DateTime?
+  notes       String?
+  createdAt   DateTime       @default(now())
+  deliverables Deliverable[]
+  invoices    Invoice[]
+}
+
+model Deliverable {
+  id          String            @id @default(cuid())
+  campaign    Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaignId  String
+  creator     Creator           @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  creatorId   String
+  type        DeliverableType   @default(POST)
+  agreedRate  Decimal           @default(0) @db.Decimal(12, 2)
+  status      DeliverableStatus @default(PLANNED)
+  dueDate     DateTime?
+  liveUrl     String?
+  createdAt   DateTime          @default(now())
+  payouts     Payout[]
+}
+
+model Payout {
+  id            String       @id @default(cuid())
+  deliverable   Deliverable  @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  deliverableId String
+  amount        Decimal      @db.Decimal(12, 2)
+  status        PayoutStatus @default(PENDING)
+  paidAt        DateTime?
+  createdAt     DateTime     @default(now())
+}
+
+model Invoice {
+  id         String        @id @default(cuid())
+  brand      Brand         @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  brandId    String
+  campaign   Campaign?     @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  campaignId String?
+  amount     Decimal       @db.Decimal(12, 2)
+  status     InvoiceStatus @default(DRAFT)
+  issuedAt   DateTime      @default(now())
+  dueAt      DateTime?
+  paidAt     DateTime?
+}
