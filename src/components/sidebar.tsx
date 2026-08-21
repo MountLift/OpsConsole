@@ -7,6 +7,7 @@ const links = [
   { href: "/brands", label: "Brands" },
   { href: "/campaigns", label: "Campaigns" },
   { href: "/finance", label: "Finance" },
+  { href: "/insights", label: "Insights" },
 ];
 
 export default function Sidebar() {
