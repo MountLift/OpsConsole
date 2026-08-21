@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const query = searchParams.get("q")?.trim() ?? "";
+  const statusFilter = searchParams.get("status")?.trim() ?? "";
+
   const [payouts, invoices] = await Promise.all([
     prisma.payout.findMany({
       orderBy: { createdAt: "desc" },
@@ -12,9 +16,41 @@ export async function GET() {
     }),
   ]);
 
+  const filteredPayouts = payouts.filter((p) => {
+    const matchesQuery = query
+      ? p.deliverable.creator.name.toLowerCase().includes(query.toLowerCase()) ||
+        p.deliverable.campaign.name.toLowerCase().includes(query.toLowerCase())
+      : true;
+
+    const matchesStatus =
+      statusFilter === "OUTSTANDING"
+        ? p.status !== "PAID"
+        : statusFilter === "PAID"
+        ? p.status === "PAID"
+        : true;
+
+    return matchesQuery && matchesStatus;
+  });
+
+  const filteredInvoices = invoices.filter((i) => {
+    const matchesQuery = query
+      ? i.brand.name.toLowerCase().includes(query.toLowerCase()) ||
+        (i.campaign?.name ?? "").toLowerCase().includes(query.toLowerCase())
+      : true;
+
+    const matchesStatus =
+      statusFilter === "OUTSTANDING"
+        ? i.status !== "PAID"
+        : statusFilter === "PAID"
+        ? i.status === "PAID"
+        : true;
+
+    return matchesQuery && matchesStatus;
+  });
+
   const rows = [
     ["Type", "Entity/Name", "Campaign", "Amount", "Status", "Date"],
-    ...payouts.map((p) => [
+    ...filteredPayouts.map((p) => [
       "Payout",
       `"${p.deliverable.creator.name.replace(/"/g, '""')}"`,
       `"${p.deliverable.campaign.name.replace(/"/g, '""')}"`,
@@ -22,7 +58,7 @@ export async function GET() {
       p.status,
       p.createdAt.toISOString().split("T")[0],
     ]),
-    ...invoices.map((i) => [
+    ...filteredInvoices.map((i) => [
       "Invoice",
       `"${i.brand.name.replace(/"/g, '""')}"`,
       `"${(i.campaign?.name ?? "—").replace(/"/g, '""')}"`,
