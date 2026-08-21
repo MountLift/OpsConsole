@@ -30,7 +30,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
   return (
     <div>
       <div className="text-xs text-muted mb-1">{campaign.brand.name}</div>
-      <h1 className="text-xl font-medium mb-1">{campaign.name}</h1>
+      <h1 className="text-xl font-display font-semibold mb-1">{campaign.name}</h1>
       <p className="text-sm text-muted mb-6">
         Budget {money(Number(campaign.budget))} · Payouts committed {money(totalPayouts)} · Status {campaign.status}
       </p>

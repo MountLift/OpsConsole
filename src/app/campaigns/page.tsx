@@ -43,7 +43,7 @@ export default async function CampaignsPage({
 
   return (
     <div>
-      <h1 className="text-xl font-medium mb-1">Campaigns</h1>
+      <h1 className="text-xl font-display font-semibold mb-1">Campaigns</h1>
       <p className="text-sm text-muted mb-6">Every campaign, linked to its brand and deliverables.</p>
 
       <CampaignForm brands={brands} />

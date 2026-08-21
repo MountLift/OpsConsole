@@ -10,7 +10,7 @@ export default async function CreatorsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-medium mb-1">Creators</h1>
+      <h1 className="text-xl font-display font-semibold mb-1">Creators</h1>
       <p className="text-sm text-muted mb-6">Your roster, across every platform.</p>
 
       <CreatorForm />

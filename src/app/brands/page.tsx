@@ -10,7 +10,7 @@ export default async function BrandsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-medium mb-1">Brands</h1>
+      <h1 className="text-xl font-display font-semibold mb-1">Brands</h1>
       <p className="text-sm text-muted mb-6">Clients you run campaigns for.</p>
 
       <BrandForm />

@@ -3,43 +3,57 @@
 @tailwind utilities;
 
 body {
-  background-color: #0b0d0c;
-  color: #e7e9e6;
+  background-color: #15171b;
+  color: #ece8de;
 }
 
 .card {
-  background-color: #141715;
-  border: 1px solid #262a27;
-  border-radius: 10px;
+  background-color: #1b1e23;
+  border: 1px solid #2b2f36;
+  border-radius: 8px;
 }
 
 .input {
-  background-color: #0b0d0c;
-  border: 1px solid #262a27;
-  border-radius: 6px;
+  background-color: #15171b;
+  border: 1px solid #2b2f36;
+  border-radius: 5px;
   padding: 0.5rem 0.75rem;
-  color: #e7e9e6;
+  color: #ece8de;
   width: 100%;
+  font-family: var(--font-sans);
 }
 
 .input:focus {
   outline: none;
-  border-color: #7cffb2;
+  border-color: #e7a94c;
+}
+
+.input::placeholder {
+  color: #6b6f76;
 }
 
 .btn {
-  background-color: #7cffb2;
-  color: #0b0d0c;
-  border-radius: 6px;
+  background-color: #e7a94c;
+  color: #15171b;
+  border-radius: 5px;
   padding: 0.5rem 1rem;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.875rem;
+  transition: opacity 0.15s ease;
 }
 
 .btn:hover {
-  opacity: 0.9;
+  opacity: 0.88;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+}
+
+.table-row {
+  transition: background-color 0.1s ease;
 }
 
 .table-row:hover {
-  background-color: #181b19;
+  background-color: #21242a;
 }

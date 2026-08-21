@@ -66,7 +66,7 @@ export default async function FinancePage({
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
-        <h1 className="text-xl font-medium">Finance</h1>
+        <h1 className="text-xl font-display font-semibold">Finance</h1>
         <a
           href={exportUrl}
           className="text-xs text-lift hover:underline"

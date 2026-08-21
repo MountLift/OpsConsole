@@ -21,7 +21,7 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-medium mb-1">Dashboard</h1>
+      <h1 className="text-xl font-display font-semibold mb-1">Dashboard</h1>
       <p className="text-sm text-muted mb-8">Snapshot across every active campaign.</p>
 
       <div className="grid grid-cols-4 gap-4 mb-10">

@@ -5,16 +5,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#0B0D0C",
-        panel: "#141715",
-        line: "#262A27",
-        lift: "#7CFFB2",
-        amber: "#F2A623",
-        muted: "#8A8F8A",
+        ink: "#15171B",
+        panel: "#1B1E23",
+        line: "#2B2F36",
+        paper: "#ECE8DE",
+        lift: "#E7A94C",
+        amber: "#C1573D",
+        muted: "#8D9198",
       },
       fontFamily: {
-        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
-        sans: ["ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
+        display: ["var(--font-display)", "var(--font-sans)", "ui-sans-serif"],
       },
     },
   },
