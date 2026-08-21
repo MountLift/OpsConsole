@@ -53,3 +53,20 @@ export async function deleteDeliverable(id: string, campaignId: string) {
   revalidatePath(`/campaigns/${campaignId}`);
   revalidatePath("/finance");
 }
+
+export async function updateCampaign(id: string, formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) return;
+
+  await prisma.campaign.update({
+    where: { id },
+    data: {
+      name,
+      budget: Number(formData.get("budget") ?? 0),
+      status: String(formData.get("status") ?? "PLANNING") as any,
+    },
+  });
+
+  revalidatePath("/campaigns");
+  revalidatePath(`/campaigns/${id}`);
+}
