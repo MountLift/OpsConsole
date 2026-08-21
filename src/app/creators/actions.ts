@@ -21,6 +21,12 @@ export async function createCreator(formData: FormData) {
 }
 
 export async function deleteCreator(id: string) {
+  await prisma.payout.deleteMany({
+    where: { deliverable: { creatorId: id } },
+  });
+  await prisma.deliverable.deleteMany({
+    where: { creatorId: id },
+  });
   await prisma.creator.delete({ where: { id } });
   revalidatePath("/creators");
   revalidatePath("/campaigns");

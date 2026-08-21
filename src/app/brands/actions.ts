@@ -19,6 +19,18 @@ export async function createBrand(formData: FormData) {
 }
 
 export async function deleteBrand(id: string) {
+  await prisma.payout.deleteMany({
+    where: { deliverable: { campaign: { brandId: id } } },
+  });
+  await prisma.deliverable.deleteMany({
+    where: { campaign: { brandId: id } },
+  });
+  await prisma.invoice.deleteMany({
+    where: { brandId: id },
+  });
+  await prisma.campaign.deleteMany({
+    where: { brandId: id },
+  });
   await prisma.brand.delete({ where: { id } });
   revalidatePath("/brands");
   revalidatePath("/campaigns");

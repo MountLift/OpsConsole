@@ -36,6 +36,12 @@ export async function addDeliverable(campaignId: string, formData: FormData) {
 }
 
 export async function deleteCampaign(id: string) {
+  await prisma.payout.deleteMany({
+    where: { deliverable: { campaignId: id } },
+  });
+  await prisma.deliverable.deleteMany({
+    where: { campaignId: id },
+  });
   await prisma.campaign.delete({ where: { id } });
   revalidatePath("/campaigns");
   revalidatePath("/finance");
