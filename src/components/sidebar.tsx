@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { UserButton } from "@clerk/nextjs";
 
 const links = [
   { href: "/", label: "Dashboard" },
@@ -26,8 +27,9 @@ export default function Sidebar() {
           </Link>
         ))}
       </nav>
-      <div className="px-5 py-4 border-t border-line text-xs text-muted font-mono">
-        systems operational
+      <div className="px-5 py-4 border-t border-line flex items-center gap-3">
+        <UserButton afterSignOutUrl="/sign-in" />
+        <span className="text-xs text-muted font-mono">signed in</span>
       </div>
     </aside>
   );
