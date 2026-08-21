@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { markPayoutPaid, markInvoicePaid } from "./actions";
 
 function money(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
@@ -21,7 +22,16 @@ export default async function FinancePage() {
 
   return (
     <div>
-      <h1 className="text-xl font-medium mb-1">Finance</h1>
+      <div className="flex items-center justify-between mb-1">
+        <h1 className="text-xl font-medium">Finance</h1>
+        <a
+          href="/api/export/finance"
+          className="text-xs text-lift hover:underline"
+          download
+        >
+          Export CSV
+        </a>
+      </div>
       <p className="text-sm text-muted mb-6">Money owed to creators, and money owed by brands.</p>
 
       <div className="grid grid-cols-2 gap-4 mb-10">
@@ -44,7 +54,16 @@ export default async function FinancePage() {
               <div className="font-medium">{p.deliverable.creator.name}</div>
               <div className="text-muted text-xs">{p.deliverable.campaign.name} · {p.status}</div>
             </div>
-            <div className="font-mono">{money(Number(p.amount))}</div>
+            <div className="flex items-center gap-4">
+              <div className="font-mono">{money(Number(p.amount))}</div>
+              {p.status !== "PAID" && (
+                <form action={markPayoutPaid.bind(null, p.id)}>
+                  <button className="text-xs text-lift hover:underline" type="submit">
+                    Mark paid
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -58,7 +77,16 @@ export default async function FinancePage() {
               <div className="font-medium">{i.brand.name}</div>
               <div className="text-muted text-xs">{i.campaign?.name ?? "—"} · {i.status}</div>
             </div>
-            <div className="font-mono">{money(Number(i.amount))}</div>
+            <div className="flex items-center gap-4">
+              <div className="font-mono">{money(Number(i.amount))}</div>
+              {i.status !== "PAID" && (
+                <form action={markInvoicePaid.bind(null, i.id)}>
+                  <button className="text-xs text-lift hover:underline" type="submit">
+                    Mark paid
+                  </button>
+                </form>
+              )}
+            </div>
           </div>
         ))}
       </div>
