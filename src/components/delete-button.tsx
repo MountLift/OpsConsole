@@ -14,14 +14,17 @@ function RemoveSubmitButton() {
 
 export default function DeleteButton({
   action,
+  onDelete,
   confirmMessage,
 }: {
-  action: (formData: FormData) => void | Promise<void>;
+  action?: (formData: FormData) => void | Promise<void>;
+  onDelete?: (formData: FormData) => void | Promise<void>;
   confirmMessage: string;
 }) {
+  const act = action ?? onDelete;
   return (
     <form
-      action={action}
+      action={act}
       onSubmit={(e) => {
         e.stopPropagation();
         if (!window.confirm(confirmMessage)) {

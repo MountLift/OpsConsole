@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import CreatorForm from "./creator-form";
-import DeleteButton from "@/components/delete-button";
-import { deleteCreator } from "./actions";
+import CreatorRow from "./creator-row";
 
 export default async function CreatorsPage() {
   const creators = await prisma.creator.findMany({
@@ -19,18 +18,7 @@ export default async function CreatorsPage() {
       <div className="card divide-y divide-line">
         {creators.length === 0 && <div className="p-4 text-sm text-muted">No creators yet — add one above.</div>}
         {creators.map((c) => (
-          <div key={c.id} className="table-row flex items-center justify-between px-4 py-3 text-sm">
-            <div>
-              <div className="font-medium">{c.name}</div>
-              <div className="text-muted text-xs">
-                {c.handle ?? "—"} · {c.platform ?? "no platform set"} · {c._count.deliverables} deliverables
-              </div>
-            </div>
-            <DeleteButton
-              action={deleteCreator.bind(null, c.id)}
-              confirmMessage={`Remove ${c.name}? This also removes their ${c._count.deliverables} deliverable${c._count.deliverables === 1 ? "" : "s"} and any payouts tied to them.`}
-            />
-          </div>
+          <CreatorRow key={c.id} creator={c} />
         ))}
       </div>
     </div>

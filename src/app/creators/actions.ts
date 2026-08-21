@@ -27,3 +27,20 @@ export async function deleteCreator(id: string) {
   revalidatePath("/finance");
   revalidatePath("/");
 }
+
+export async function updateCreator(id: string, formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) return;
+
+  await prisma.creator.update({
+    where: { id },
+    data: {
+      name,
+      handle: String(formData.get("handle") ?? "") || null,
+      platform: String(formData.get("platform") ?? "") || null,
+      email: String(formData.get("email") ?? "") || null,
+    },
+  });
+
+  revalidatePath("/creators");
+}

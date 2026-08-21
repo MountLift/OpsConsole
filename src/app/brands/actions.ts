@@ -25,3 +25,19 @@ export async function deleteBrand(id: string) {
   revalidatePath("/finance");
   revalidatePath("/");
 }
+
+export async function updateBrand(id: string, formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) return;
+
+  await prisma.brand.update({
+    where: { id },
+    data: {
+      name,
+      contactName: String(formData.get("contactName") ?? "") || null,
+      contactEmail: String(formData.get("contactEmail") ?? "") || null,
+    },
+  });
+
+  revalidatePath("/brands");
+}
