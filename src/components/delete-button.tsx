@@ -1,30 +1,35 @@
 "use client";
 
-import { useTransition } from "react";
+import { useFormStatus } from "react-dom";
 
-export default function DeleteButton({
-  onDelete,
-  confirmMessage,
-}: {
-  onDelete: () => Promise<void>;
-  confirmMessage: string;
-}) {
-  const [isPending, startTransition] = useTransition();
+function RemoveSubmitButton() {
+  const { pending } = useFormStatus();
 
   return (
-    <button
-      className="text-xs text-muted hover:text-amber"
-      disabled={isPending}
-      onClick={(e) => {
-        e.preventDefault();
+    <button className="text-xs text-muted hover:text-amber" disabled={pending} type="submit">
+      {pending ? "Removing…" : "Remove"}
+    </button>
+  );
+}
+
+export default function DeleteButton({
+  action,
+  confirmMessage,
+}: {
+  action: (formData: FormData) => void | Promise<void>;
+  confirmMessage: string;
+}) {
+  return (
+    <form
+      action={action}
+      onSubmit={(e) => {
         e.stopPropagation();
-        if (!window.confirm(confirmMessage)) return;
-        startTransition(async () => {
-          await onDelete();
-        });
+        if (!window.confirm(confirmMessage)) {
+          e.preventDefault();
+        }
       }}
     >
-      {isPending ? "Removing…" : "Remove"}
-    </button>
+      <RemoveSubmitButton />
+    </form>
   );
 }

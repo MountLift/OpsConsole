@@ -56,7 +56,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
             <div className="flex items-center gap-4">
               <div className="text-lift font-mono">{money(Number(d.agreedRate))}</div>
               <DeleteButton
-                onDelete={() => deleteDeliverable(d.id, campaign.id)}
+                action={deleteDeliverable.bind(null, d.id, campaign.id)}
                 confirmMessage={`Remove this ${d.type.toLowerCase()} from ${d.creator.name}? This also removes any payout logged against it.`}
               />
             </div>

@@ -27,7 +27,7 @@ export default async function BrandsPage() {
               </div>
             </div>
             <DeleteButton
-              onDelete={() => deleteBrand(b.id)}
+              action={deleteBrand.bind(null, b.id)}
               confirmMessage={`Remove ${b.name}? This also removes its ${b._count.campaigns} campaign${b._count.campaigns === 1 ? "" : "s"} and everything linked to them (deliverables, payouts, invoices).`}
             />
           </div>

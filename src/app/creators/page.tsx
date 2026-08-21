@@ -27,7 +27,7 @@ export default async function CreatorsPage() {
               </div>
             </div>
             <DeleteButton
-              onDelete={() => deleteCreator(c.id)}
+              action={deleteCreator.bind(null, c.id)}
               confirmMessage={`Remove ${c.name}? This also removes their ${c._count.deliverables} deliverable${c._count.deliverables === 1 ? "" : "s"} and any payouts tied to them.`}
             />
           </div>

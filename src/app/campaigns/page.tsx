@@ -39,7 +39,7 @@ export default async function CampaignsPage() {
             <div className="flex items-center gap-4">
               <div className="text-lift font-mono">{money(Number(c.budget))}</div>
               <DeleteButton
-                onDelete={() => deleteCampaign(c.id)}
+                action={deleteCampaign.bind(null, c.id)}
                 confirmMessage={`Remove ${c.name}? This also removes its ${c._count.deliverables} deliverable${c._count.deliverables === 1 ? "" : "s"} and any payouts/invoices tied to it.`}
               />
             </div>
