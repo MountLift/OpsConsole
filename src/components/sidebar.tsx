@@ -27,8 +27,18 @@ export default async function Sidebar() {
       </svg>
 
       <div className="px-5 py-6 border-b border-line relative">
-        <div className="font-display font-bold text-base tracking-tight text-lift">MountLift</div>
-        <RoleBadge role={role} />
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="font-display font-bold text-base tracking-tight text-lift">MountLift</div>
+            <div className="text-[10px] uppercase tracking-[0.18em] text-muted mt-1">Ops Console</div>
+          </div>
+          <span className="rounded-full border border-lift/60 bg-lift/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-lift">
+            Live
+          </span>
+        </div>
+        <div className="mt-3">
+          <RoleBadge role={role} />
+        </div>
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1 relative">
         {links.map((link) => (

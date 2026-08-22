@@ -1,3 +1,9 @@
+:root {
+  --font-display: "Segoe UI", "Arial", sans-serif;
+  --font-sans: "Segoe UI", "Arial", sans-serif;
+  --font-mono: "Consolas", "SFMono-Regular", monospace;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,6 +11,7 @@
 body {
   background-color: #15171b;
   color: #ece8de;
+  font-family: var(--font-sans);
 }
 
 .card {
