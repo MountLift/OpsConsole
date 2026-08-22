@@ -43,7 +43,7 @@ export default async function AccountManagerDashboard() {
         <div className="text-sm text-paper">{aiSummary}</div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {roleWidgets.map((widget) => (
           <div key={widget.label} className="card p-4">
             <div className="text-[11px] uppercase tracking-[0.18em] text-muted">{widget.label}</div>
@@ -53,7 +53,7 @@ export default async function AccountManagerDashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <div className="card p-4">
           <div className="text-xs text-muted mb-2">Total campaigns</div>
           <div className="text-2xl font-medium text-lift font-mono">{campaigns.length}</div>
@@ -68,7 +68,7 @@ export default async function AccountManagerDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {COLUMNS.map((col) => {
           const items = byStatus(col.status);
           return (

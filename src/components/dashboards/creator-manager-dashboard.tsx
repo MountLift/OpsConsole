@@ -47,7 +47,7 @@ export default async function CreatorManagerDashboard() {
         <div className="text-sm text-paper">{aiSummary}</div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {roleWidgets.map((widget) => (
           <div key={widget.label} className="card p-4">
             <div className="text-[11px] uppercase tracking-[0.18em] text-muted">{widget.label}</div>
@@ -57,7 +57,7 @@ export default async function CreatorManagerDashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div className="card p-4">
           <div className="text-xs text-muted mb-2">Total creators</div>
           <div className="text-2xl font-medium text-lift font-mono">{creators.length}</div>
@@ -79,9 +79,9 @@ export default async function CreatorManagerDashboard() {
         <ArrowRight size={16} className="text-lift group-hover:translate-x-0.5 transition-transform" />
       </Link>
 
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
         {creators.length === 0 && (
-          <div className="col-span-4 card p-4 text-sm text-muted">
+          <div className="col-span-full xl:col-span-4 card p-4 text-sm text-muted">
             No creators yet — add one from the Creators tab.
           </div>
         )}

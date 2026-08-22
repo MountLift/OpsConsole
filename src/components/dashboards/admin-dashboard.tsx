@@ -96,7 +96,7 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center sm:gap-4">
         <div>
           <h1 className="text-xl font-display font-semibold mb-1">Operations dashboard</h1>
           <p className="text-sm text-muted">Snapshot across every active campaign and creator workflow.</p>
@@ -111,7 +111,7 @@ export default async function AdminDashboard() {
         <div className="text-sm text-paper">{aiSummary}</div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {roleWidgets.map((widget) => (
           <div key={widget.label} className="card p-4">
             <div className="text-[11px] uppercase tracking-[0.18em] text-muted">{widget.label}</div>
@@ -121,7 +121,7 @@ export default async function AdminDashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {stats.map((stat) => (
           <div key={stat.label} className="card p-4">
             <div className="flex items-center justify-between mb-4">
@@ -147,7 +147,7 @@ export default async function AdminDashboard() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4 mb-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
             <div className="rounded-md border border-line bg-ink px-3 py-3">
               <div className="text-[11px] uppercase tracking-[0.18em] text-muted">Budget</div>
               <div className="text-xl font-medium text-lift mt-2">{money(totalActiveBudget)}</div>
@@ -203,7 +203,7 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="card p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
