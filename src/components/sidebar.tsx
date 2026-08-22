@@ -3,6 +3,7 @@ import { UserButton } from "@clerk/nextjs";
 import { getRole } from "@/lib/get-role";
 import { navLinksForRole } from "@/lib/roles";
 import RoleBadge from "./role-badge";
+import ThemeToggle from "./theme-toggle";
 
 export default async function Sidebar() {
   const role = await getRole();
@@ -51,9 +52,12 @@ export default async function Sidebar() {
           </Link>
         ))}
       </nav>
-      <div className="px-5 py-4 border-t border-line flex items-center gap-3 relative">
-        <UserButton afterSignOutUrl="/sign-in" />
-        <span className="text-xs text-muted font-mono">signed in</span>
+      <div className="px-5 py-4 border-t border-line flex items-center justify-between gap-3 relative">
+        <ThemeToggle />
+        <div className="flex items-center gap-3">
+          <UserButton afterSignOutUrl="/sign-in" />
+          <span className="text-xs text-muted font-mono">signed in</span>
+        </div>
       </div>
     </aside>
   );

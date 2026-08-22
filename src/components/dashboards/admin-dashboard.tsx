@@ -86,6 +86,14 @@ export default async function AdminDashboard() {
     },
   ];
 
+  const aiSummary = `AI summary: ${Math.max(0, deliverables.filter((item) => item.status === "SUBMITTED").length)} approvals are waiting, ${overdueInvoices} invoices are overdue, and ${upcomingDeliverables.length} creative checkpoints need attention before the week closes.`;
+
+  const roleWidgets = [
+    { label: "Budget momentum", value: money(totalActiveBudget), hint: "Current active spend" },
+    { label: "Approval risk", value: `${deliverableCoverage}%`, hint: "On-track deliverables" },
+    { label: "Queue health", value: `${pendingPayoutCount}`, hint: "Pending payout requests" },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
@@ -96,6 +104,21 @@ export default async function AdminDashboard() {
         <div className="card px-3 py-2 text-xs text-muted font-mono uppercase tracking-[0.18em]">
           Live overview
         </div>
+      </div>
+
+      <div className="card border-lift/40 bg-gradient-to-r from-lift/10 via-ink to-panel p-4">
+        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-lift mb-2">AI summary</div>
+        <div className="text-sm text-paper">{aiSummary}</div>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-4">
+        {roleWidgets.map((widget) => (
+          <div key={widget.label} className="card p-4">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-muted">{widget.label}</div>
+            <div className="text-2xl font-medium text-lift mt-2">{widget.value}</div>
+            <div className="text-[11px] text-muted mt-1">{widget.hint}</div>
+          </div>
+        ))}
       </div>
 
       <div className="grid grid-cols-4 gap-4">

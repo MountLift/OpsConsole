@@ -5,13 +5,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#15171B",
-        panel: "#1B1E23",
-        line: "#2B2F36",
-        paper: "#ECE8DE",
-        lift: "#E7A94C",
-        amber: "#C1573D",
-        muted: "#8D9198",
+        ink: "var(--color-ink)",
+        panel: "var(--color-panel)",
+        line: "var(--color-line)",
+        paper: "var(--color-paper)",
+        lift: "var(--color-lift)",
+        amber: "var(--color-amber)",
+        muted: "var(--color-muted)",
       },
       fontFamily: {
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],

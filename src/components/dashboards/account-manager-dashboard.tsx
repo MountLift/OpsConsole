@@ -20,6 +20,15 @@ export default async function AccountManagerDashboard() {
   ]);
 
   const byStatus = (status: string) => campaigns.filter((c) => c.status === status);
+  const activeCampaigns = byStatus("ACTIVE").length;
+  const planningCampaigns = byStatus("PLANNING").length;
+  const aiSummary = `AI summary: ${activeCampaigns} campaigns are live, ${planningCampaigns} are still in planning, and ${byStatus("COMPLETE").length} are already delivered.`;
+
+  const roleWidgets = [
+    { label: "Live campaigns", value: activeCampaigns, hint: "Currently active" },
+    { label: "In planning", value: planningCampaigns, hint: "Needs attention" },
+    { label: "Delivered", value: byStatus("COMPLETE").length, hint: "Completed this cycle" },
+  ];
 
   return (
     <div>
@@ -28,6 +37,21 @@ export default async function AccountManagerDashboard() {
         <h1 className="text-xl font-display font-semibold">Campaign Pipeline</h1>
       </div>
       <p className="text-sm text-muted mb-6">Every campaign, grouped by where it stands.</p>
+
+      <div className="card border-lift/40 bg-gradient-to-r from-lift/10 via-ink to-panel p-4 mb-6">
+        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-lift mb-2">AI summary</div>
+        <div className="text-sm text-paper">{aiSummary}</div>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-4 mb-8">
+        {roleWidgets.map((widget) => (
+          <div key={widget.label} className="card p-4">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-muted">{widget.label}</div>
+            <div className="text-2xl font-medium text-lift mt-2">{widget.value}</div>
+            <div className="text-[11px] text-muted mt-1">{widget.hint}</div>
+          </div>
+        ))}
+      </div>
 
       <div className="grid grid-cols-3 gap-4 mb-8">
         <div className="card p-4">
