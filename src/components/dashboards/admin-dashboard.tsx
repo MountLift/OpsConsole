@@ -2,7 +2,7 @@ import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { getRole } from "@/lib/get-role";
 import { navLinksForRole } from "@/lib/roles";
-import RoleBadge from "./role-badge";
+import RoleBadge from "../role-badge";
 
 export default async function Sidebar() {
   const role = await getRole();
