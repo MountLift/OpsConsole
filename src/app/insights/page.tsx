@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import AuditPanel from "./audit-panel";
+import { requireAccess } from "@/lib/require-access";
 
 export default async function InsightsPage() {
+  await requireAccess("/insights");
+
   const creators = await prisma.creator.findMany({
     orderBy: { name: "asc" },
     select: { id: true, name: true, handle: true, platform: true },

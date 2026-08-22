@@ -8,9 +8,11 @@ const TYPES = ["POST", "REEL", "STORY", "VIDEO", "LIVESTREAM", "OTHER"];
 export default function DeliverableForm({
   campaignId,
   creators,
+  showRate = true,
 }: {
   campaignId: string;
   creators: { id: string; name: string }[];
+  showRate?: boolean;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
@@ -24,7 +26,7 @@ export default function DeliverableForm({
           formRef.current?.reset();
         });
       }}
-      className="card p-4 grid grid-cols-4 gap-3 mb-6"
+      className={`card p-4 grid ${showRate ? "grid-cols-4" : "grid-cols-3"} gap-3 mb-6`}
     >
       <select className="input" name="creatorId" required defaultValue="">
         <option value="" disabled>
@@ -43,7 +45,9 @@ export default function DeliverableForm({
           </option>
         ))}
       </select>
-      <input className="input" name="agreedRate" placeholder="Agreed rate" type="number" min="0" />
+      {showRate && (
+        <input className="input" name="agreedRate" placeholder="Agreed rate" type="number" min="0" />
+      )}
       <button className="btn" disabled={isPending}>
         {isPending ? "Adding…" : "Add deliverable"}
       </button>

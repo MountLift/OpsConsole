@@ -1,16 +1,12 @@
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
+import { getRole } from "@/lib/get-role";
+import { navLinksForRole, ROLE_LABELS } from "@/lib/roles";
 
-const links = [
-  { href: "/", label: "Dashboard" },
-  { href: "/creators", label: "Creators" },
-  { href: "/brands", label: "Brands" },
-  { href: "/campaigns", label: "Campaigns" },
-  { href: "/finance", label: "Finance" },
-  { href: "/insights", label: "Insights" },
-];
+export default async function Sidebar() {
+  const role = await getRole();
+  const links = navLinksForRole(role);
 
-export default function Sidebar() {
   return (
     <aside className="w-56 shrink-0 border-r border-line bg-panel h-screen sticky top-0 flex flex-col relative overflow-hidden">
       {/* Topographic contour-line watermark — a nod to Mount/Lift */}
@@ -31,7 +27,9 @@ export default function Sidebar() {
 
       <div className="px-5 py-6 border-b border-line relative">
         <div className="font-display font-bold text-base tracking-tight text-lift">MountLift</div>
-        <div className="text-xs text-muted mt-0.5 font-mono">ops console</div>
+        <div className="text-xs text-muted mt-0.5 font-mono">
+          {role ? ROLE_LABELS[role] : "ops console"}
+        </div>
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1 relative">
         {links.map((link) => (

@@ -35,13 +35,28 @@ export async function addDeliverable(campaignId: string, formData: FormData) {
   revalidatePath(`/campaigns/${campaignId}`);
 }
 
+export async function updateCampaign(id: string, formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) return;
+
+  const data: { name: string; status: any; budget?: number } = {
+    name,
+    status: String(formData.get("status") ?? "PLANNING") as any,
+  };
+
+  // Only touch budget if the field was actually present — Account Managers'
+  // edit form omits it entirely, and we don't want that to zero it out.
+  if (formData.has("budget")) {
+    data.budget = Number(formData.get("budget") ?? 0);
+  }
+
+  await prisma.campaign.update({ where: { id }, data });
+
+  revalidatePath("/campaigns");
+  revalidatePath(`/campaigns/${id}`);
+}
+
 export async function deleteCampaign(id: string) {
-  await prisma.payout.deleteMany({
-    where: { deliverable: { campaignId: id } },
-  });
-  await prisma.deliverable.deleteMany({
-    where: { campaignId: id },
-  });
   await prisma.campaign.delete({ where: { id } });
   revalidatePath("/campaigns");
   revalidatePath("/finance");
@@ -52,21 +67,4 @@ export async function deleteDeliverable(id: string, campaignId: string) {
   await prisma.deliverable.delete({ where: { id } });
   revalidatePath(`/campaigns/${campaignId}`);
   revalidatePath("/finance");
-}
-
-export async function updateCampaign(id: string, formData: FormData) {
-  const name = String(formData.get("name") ?? "").trim();
-  if (!name) return;
-
-  await prisma.campaign.update({
-    where: { id },
-    data: {
-      name,
-      budget: Number(formData.get("budget") ?? 0),
-      status: String(formData.get("status") ?? "PLANNING") as any,
-    },
-  });
-
-  revalidatePath("/campaigns");
-  revalidatePath(`/campaigns/${id}`);
 }
