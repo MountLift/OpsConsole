@@ -1,40 +1,68 @@
+:root {
+  --font-display: "Segoe UI", "Arial", sans-serif;
+  --font-sans: "Segoe UI", "Arial", sans-serif;
+  --font-mono: "Consolas", "SFMono-Regular", monospace;
+  --color-ink: #15171b;
+  --color-panel: #1b1e23;
+  --color-line: #2b2f36;
+  --color-paper: #ece8de;
+  --color-lift: #e7a94c;
+  --color-amber: #c1573d;
+  --color-muted: #8d9198;
+}
+
+:root[data-theme="light"] {
+  --color-ink: #f6f3ee;
+  --color-panel: #ffffff;
+  --color-line: #e2ddd4;
+  --color-paper: #171b22;
+  --color-lift: #d89a38;
+  --color-amber: #b75043;
+  --color-muted: #5d6470;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+html {
+  background-color: var(--color-ink);
+}
+
 body {
-  background-color: #15171b;
-  color: #ece8de;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-sans);
 }
 
 .card {
-  background-color: #1b1e23;
-  border: 1px solid #2b2f36;
+  background-color: var(--color-panel);
+  border: 1px solid var(--color-line);
   border-radius: 8px;
 }
 
 .input {
-  background-color: #15171b;
-  border: 1px solid #2b2f36;
+  background-color: var(--color-ink);
+  border: 1px solid var(--color-line);
   border-radius: 5px;
   padding: 0.5rem 0.75rem;
-  color: #ece8de;
+  color: var(--color-paper);
   width: 100%;
   font-family: var(--font-sans);
 }
 
 .input:focus {
   outline: none;
-  border-color: #e7a94c;
+  border-color: var(--color-lift);
 }
 
 .input::placeholder {
-  color: #6b6f76;
+  color: var(--color-muted);
 }
 
 .btn {
-  background-color: #e7a94c;
-  color: #15171b;
+  background-color: var(--color-lift);
+  color: var(--color-ink);
   border-radius: 5px;
   padding: 0.5rem 1rem;
   font-weight: 600;
@@ -55,5 +83,5 @@ body {
 }
 
 .table-row:hover {
-  background-color: #21242a;
+  background-color: rgba(255, 255, 255, 0.03);
 }

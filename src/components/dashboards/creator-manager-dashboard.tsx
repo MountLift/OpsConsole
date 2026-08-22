@@ -25,6 +25,14 @@ export default async function CreatorManagerDashboard() {
   const igReady = creators.filter(
     (c) => c.handle && (!c.platform || c.platform.toLowerCase().includes("insta"))
   ).length;
+  const needsFollowUp = creators.filter((c) => !c.handle || !c.platform).length;
+  const aiSummary = `AI summary: ${igReady} creators are ready for Instagram audit, ${creators.length - igReady} still need profile cleanup, and ${needsFollowUp} profiles need follow-up before the next campaign.`;
+
+  const roleWidgets = [
+    { label: "Total creators", value: creators.length, hint: "On the current roster" },
+    { label: "Instagram ready", value: igReady, hint: "Profiles ready to audit" },
+    { label: "Needs follow-up", value: needsFollowUp, hint: "Missing handle or platform" },
+  ];
 
   return (
     <div>
@@ -33,6 +41,21 @@ export default async function CreatorManagerDashboard() {
         <h1 className="text-xl font-display font-semibold">Creator Roster</h1>
       </div>
       <p className="text-sm text-muted mb-6">Everyone on the roster, at a glance.</p>
+
+      <div className="card border-lift/40 bg-gradient-to-r from-lift/10 via-ink to-panel p-4 mb-6">
+        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-lift mb-2">AI summary</div>
+        <div className="text-sm text-paper">{aiSummary}</div>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-4 mb-6">
+        {roleWidgets.map((widget) => (
+          <div key={widget.label} className="card p-4">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-muted">{widget.label}</div>
+            <div className="text-2xl font-medium text-lift mt-2">{widget.value}</div>
+            <div className="text-[11px] text-muted mt-1">{widget.hint}</div>
+          </div>
+        ))}
+      </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="card p-4">
