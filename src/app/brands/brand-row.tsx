@@ -22,16 +22,16 @@ export default function BrandRow({ brand }: { brand: Brand }) {
           await updateBrand(brand.id, formData);
           setEditing(false);
         }}
-        className="grid grid-cols-4 gap-3 px-4 py-3"
+        className="grid grid-cols-1 md:grid-cols-4 gap-3 p-4 bg-ink/50"
       >
-        <input className="input" name="name" defaultValue={brand.name} required />
-        <input className="input" name="contactName" defaultValue={brand.contactName ?? ""} placeholder="Contact name" />
-        <input className="input" name="contactEmail" defaultValue={brand.contactEmail ?? ""} placeholder="Contact email" type="email" />
-        <div className="flex gap-2">
-          <button className="btn" type="submit">Save</button>
+        <input className="input" name="name" defaultValue={brand.name} placeholder="Brand Name" required />
+        <input className="input" name="contactName" defaultValue={brand.contactName ?? ""} placeholder="Contact Name" />
+        <input className="input" name="contactEmail" defaultValue={brand.contactEmail ?? ""} placeholder="Contact Email" type="email" />
+        <div className="flex items-center gap-2">
+          <button className="btn flex-1" type="submit">Save</button>
           <button
             type="button"
-            className="text-xs text-muted hover:text-amber"
+            className="text-xs text-muted hover:text-amber px-2 py-1"
             onClick={() => setEditing(false)}
           >
             Cancel
@@ -42,17 +42,39 @@ export default function BrandRow({ brand }: { brand: Brand }) {
   }
 
   return (
-    <div className="table-row flex items-center justify-between px-4 py-3 text-sm">
-      <div>
-        <div className="font-medium">{brand.name}</div>
-        <div className="text-muted text-xs">
-          {brand.contactName ?? "no contact set"} · {brand._count.campaigns} campaigns
+    <div className="table-row flex items-center justify-between px-5 py-3.5 text-sm group">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full bg-paper/10 border border-paper/20 text-paper flex items-center justify-center font-display font-bold text-xs uppercase">
+          {brand.name.charAt(0)}
+        </div>
+        <div>
+          <div className="font-medium text-paper group-hover:text-lift transition-colors">
+            {brand.name}
+          </div>
+          <div className="text-muted text-xs flex items-center gap-2 mt-0.5 font-mono">
+            <span>Contact: {brand.contactName ?? "Unassigned"}</span>
+            {brand.contactEmail && (
+              <>
+                <span>•</span>
+                <span>{brand.contactEmail}</span>
+              </>
+            )}
+          </div>
         </div>
       </div>
+
       <div className="flex items-center gap-4">
-        <button className="text-xs text-muted hover:text-lift" onClick={() => setEditing(true)}>
+        <span className="px-2.5 py-1 rounded-full text-xs font-mono bg-panel text-muted border border-line">
+          {brand._count.campaigns} campaign{brand._count.campaigns === 1 ? "" : "s"}
+        </span>
+
+        <button
+          className="text-xs text-muted hover:text-lift font-medium transition-colors"
+          onClick={() => setEditing(true)}
+        >
           Edit
         </button>
+
         <DeleteButton
           onDelete={deleteBrand.bind(null, brand.id)}
           confirmMessage={`Remove ${brand.name}? This also removes its ${brand._count.campaigns} campaign${brand._count.campaigns === 1 ? "" : "s"} and everything linked to them (deliverables, payouts, invoices).`}

@@ -23,17 +23,17 @@ export default function CreatorRow({ creator }: { creator: Creator }) {
           await updateCreator(creator.id, formData);
           setEditing(false);
         }}
-        className="grid grid-cols-5 gap-3 px-4 py-3"
+        className="grid grid-cols-1 md:grid-cols-5 gap-3 p-4 bg-ink/50"
       >
-        <input className="input" name="name" defaultValue={creator.name} required />
+        <input className="input" name="name" defaultValue={creator.name} placeholder="Name" required />
         <input className="input" name="handle" defaultValue={creator.handle ?? ""} placeholder="@handle" />
-        <input className="input" name="platform" defaultValue={creator.platform ?? ""} placeholder="Platform" />
+        <input className="input" name="platform" defaultValue={creator.platform ?? ""} placeholder="Platform (e.g. Instagram)" />
         <input className="input" name="email" defaultValue={creator.email ?? ""} placeholder="Email" type="email" />
-        <div className="flex gap-2">
-          <button className="btn" type="submit">Save</button>
+        <div className="flex items-center gap-2">
+          <button className="btn flex-1" type="submit">Save</button>
           <button
             type="button"
-            className="text-xs text-muted hover:text-amber"
+            className="text-xs text-muted hover:text-amber px-2 py-1"
             onClick={() => setEditing(false)}
           >
             Cancel
@@ -43,18 +43,42 @@ export default function CreatorRow({ creator }: { creator: Creator }) {
     );
   }
 
+  const handleDisplay = creator.handle ? (creator.handle.startsWith("@") ? creator.handle : `@${creator.handle}`) : "No handle";
+  const platform = creator.platform || "Platform unassigned";
+
   return (
-    <div className="table-row flex items-center justify-between px-4 py-3 text-sm">
-      <div>
-        <div className="font-medium">{creator.name}</div>
-        <div className="text-muted text-xs">
-          {creator.handle ?? "—"} · {creator.platform ?? "no platform set"} · {creator._count.deliverables} deliverables
+    <div className="table-row flex items-center justify-between px-5 py-3.5 text-sm group">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full bg-lift/10 border border-lift/20 text-lift flex items-center justify-center font-display font-bold text-xs uppercase">
+          {creator.name.charAt(0)}
+        </div>
+        <div>
+          <div className="font-medium text-paper flex items-center gap-2">
+            <span>{creator.name}</span>
+            {creator.email && (
+              <span className="text-[11px] text-muted font-mono hidden sm:inline">({creator.email})</span>
+            )}
+          </div>
+          <div className="text-muted text-xs flex items-center gap-2 mt-0.5 font-mono">
+            <span className="text-lift">{handleDisplay}</span>
+            <span>•</span>
+            <span>{platform}</span>
+          </div>
         </div>
       </div>
+
       <div className="flex items-center gap-4">
-        <button className="text-xs text-muted hover:text-lift" onClick={() => setEditing(true)}>
+        <span className="px-2.5 py-1 rounded-full text-xs font-mono bg-panel text-muted border border-line">
+          {creator._count.deliverables} deliverable{creator._count.deliverables === 1 ? "" : "s"}
+        </span>
+
+        <button
+          className="text-xs text-muted hover:text-lift font-medium transition-colors"
+          onClick={() => setEditing(true)}
+        >
           Edit
         </button>
+
         <DeleteButton
           onDelete={deleteCreator.bind(null, creator.id)}
           confirmMessage={`Remove ${creator.name}? This also removes their ${creator._count.deliverables} deliverable${creator._count.deliverables === 1 ? "" : "s"} and any payouts tied to them.`}

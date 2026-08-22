@@ -64,39 +64,70 @@ export default async function FinancePage({
   const exportUrl = `/api/export/finance${hasFilter ? `?q=${encodeURIComponent(query)}&status=${encodeURIComponent(statusFilter)}` : ""}`;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-1">
-        <h1 className="text-xl font-display font-semibold">Finance</h1>
+    <div className="space-y-8">
+      {/* Header & Export Link */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-display font-bold tracking-tight mb-1">Finance</h1>
+          <p className="text-sm text-muted">Ledgers for creator payouts (payable) and brand invoices (receivable).</p>
+        </div>
+
         <a
           href={exportUrl}
-          className="text-xs text-lift hover:underline"
+          className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-md bg-lift text-ink hover:opacity-90 transition-opacity w-fit"
           download
         >
-          Export CSV
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span>Export CSV</span>
         </a>
       </div>
-      <p className="text-sm text-muted mb-6">Money owed to creators, and money owed by brands.</p>
 
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <div className="card p-4">
-          <div className="text-xs text-muted mb-2">Outstanding payouts (payable)</div>
-          <div className="text-2xl font-medium text-amber">{money(totalPayable)}</div>
+      {/* Outstanding Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="card p-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-muted font-medium">Outstanding Creator Payouts (Payable)</span>
+            <span className="p-2 rounded-lg bg-amber/10 border border-amber/20 text-amber">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </span>
+          </div>
+          <div className="text-2xl font-display font-semibold text-amber">{money(totalPayable)}</div>
+          <p className="text-xs text-muted mt-1">Owed to creators across active campaigns</p>
         </div>
-        <div className="card p-4">
-          <div className="text-xs text-muted mb-2">Outstanding invoices (receivable)</div>
-          <div className="text-2xl font-medium text-lift">{money(totalReceivable)}</div>
+
+        <div className="card p-5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-muted font-medium">Outstanding Brand Invoices (Receivable)</span>
+            <span className="p-2 rounded-lg bg-lift/10 border border-lift/20 text-lift">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </span>
+          </div>
+          <div className="text-2xl font-display font-semibold text-lift">{money(totalReceivable)}</div>
+          <p className="text-xs text-muted mt-1">Owed by client brands to agency</p>
         </div>
       </div>
 
-      <form method="GET" className="flex items-center gap-3 mb-8">
-        <input
-          name="q"
-          defaultValue={query}
-          placeholder="Search creator, brand, or campaign…"
-          className="input flex-1"
-        />
-        <select name="status" defaultValue={statusFilter} className="input">
-          <option value="">All statuses</option>
+      {/* Filter Form */}
+      <form method="GET" className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <input
+            name="q"
+            defaultValue={query}
+            placeholder="Search creator, brand, or campaign…"
+            className="input pl-9"
+          />
+          <svg className="w-4 h-4 text-muted absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <select name="status" defaultValue={statusFilter} className="input w-48">
+          <option value="">All Statuses</option>
           <option value="OUTSTANDING">Outstanding</option>
           <option value="PAID">Paid</option>
         </select>
@@ -110,58 +141,84 @@ export default async function FinancePage({
         )}
       </form>
 
-      <h2 className="text-sm font-medium mb-3 text-muted uppercase tracking-wide">Creator payouts</h2>
-      <div className="card divide-y divide-line mb-10">
-        {filteredPayouts.length === 0 && (
-          <div className="p-4 text-sm text-muted">
-            {hasFilter ? "No payouts match your filter criteria." : "No payouts logged yet."}
-          </div>
-        )}
-        {filteredPayouts.map((p) => (
-          <div key={p.id} className="table-row flex items-center justify-between px-4 py-3 text-sm">
-            <div>
-              <div className="font-medium">{p.deliverable.creator.name}</div>
-              <div className="text-muted text-xs">{p.deliverable.campaign.name} · {p.status}</div>
+      {/* Creator Payouts Ledger */}
+      <div>
+        <h2 className="text-xs font-mono uppercase tracking-wider text-muted mb-3 flex items-center justify-between">
+          <span>Creator Payouts (Payables)</span>
+          <span>{filteredPayouts.length} entries</span>
+        </h2>
+        <div className="card divide-y divide-line overflow-hidden">
+          {filteredPayouts.length === 0 ? (
+            <div className="p-6 text-center text-sm text-muted">
+              {hasFilter ? "No payouts match your filter criteria." : "No payouts logged yet."}
             </div>
-            <div className="flex items-center gap-4">
-              <div className="font-mono">{money(Number(p.amount))}</div>
-              {p.status !== "PAID" && (
-                <form action={markPayoutPaid.bind(null, p.id)}>
-                  <button className="text-xs text-lift hover:underline" type="submit">
-                    Mark paid
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
-        ))}
+          ) : (
+            filteredPayouts.map((p) => (
+              <div key={p.id} className="table-row flex items-center justify-between px-5 py-3.5 text-sm group">
+                <div>
+                  <div className="font-medium text-paper">{p.deliverable.creator.name}</div>
+                  <div className="text-muted text-xs flex items-center gap-2 mt-0.5 font-mono">
+                    <span>Campaign: {p.deliverable.campaign.name}</span>
+                    <span>•</span>
+                    <span className={p.status === "PAID" ? "text-lift" : "text-amber"}>{p.status}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="font-mono text-paper font-medium">{money(Number(p.amount))}</div>
+                  {p.status !== "PAID" ? (
+                    <form action={markPayoutPaid.bind(null, p.id)}>
+                      <button className="text-xs font-medium text-lift hover:underline bg-lift/10 border border-lift/20 px-2.5 py-1 rounded" type="submit">
+                        Mark Paid
+                      </button>
+                    </form>
+                  ) : (
+                    <span className="text-xs font-mono text-lift px-2.5 py-1 bg-lift/10 rounded">✓ Paid</span>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
-      <h2 className="text-sm font-medium mb-3 text-muted uppercase tracking-wide">Brand invoices</h2>
-      <div className="card divide-y divide-line">
-        {filteredInvoices.length === 0 && (
-          <div className="p-4 text-sm text-muted">
-            {hasFilter ? "No invoices match your filter criteria." : "No invoices logged yet."}
-          </div>
-        )}
-        {filteredInvoices.map((i) => (
-          <div key={i.id} className="table-row flex items-center justify-between px-4 py-3 text-sm">
-            <div>
-              <div className="font-medium">{i.brand.name}</div>
-              <div className="text-muted text-xs">{i.campaign?.name ?? "—"} · {i.status}</div>
+      {/* Brand Invoices Ledger */}
+      <div>
+        <h2 className="text-xs font-mono uppercase tracking-wider text-muted mb-3 flex items-center justify-between">
+          <span>Brand Invoices (Receivables)</span>
+          <span>{filteredInvoices.length} entries</span>
+        </h2>
+        <div className="card divide-y divide-line overflow-hidden">
+          {filteredInvoices.length === 0 ? (
+            <div className="p-6 text-center text-sm text-muted">
+              {hasFilter ? "No invoices match your filter criteria." : "No invoices logged yet."}
             </div>
-            <div className="flex items-center gap-4">
-              <div className="font-mono">{money(Number(i.amount))}</div>
-              {i.status !== "PAID" && (
-                <form action={markInvoicePaid.bind(null, i.id)}>
-                  <button className="text-xs text-lift hover:underline" type="submit">
-                    Mark paid
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
-        ))}
+          ) : (
+            filteredInvoices.map((i) => (
+              <div key={i.id} className="table-row flex items-center justify-between px-5 py-3.5 text-sm group">
+                <div>
+                  <div className="font-medium text-paper">{i.brand.name}</div>
+                  <div className="text-muted text-xs flex items-center gap-2 mt-0.5 font-mono">
+                    <span>Campaign: {i.campaign?.name ?? "—"}</span>
+                    <span>•</span>
+                    <span className={i.status === "PAID" ? "text-lift" : "text-amber"}>{i.status}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="font-mono text-paper font-medium">{money(Number(i.amount))}</div>
+                  {i.status !== "PAID" ? (
+                    <form action={markInvoicePaid.bind(null, i.id)}>
+                      <button className="text-xs font-medium text-lift hover:underline bg-lift/10 border border-lift/20 px-2.5 py-1 rounded" type="submit">
+                        Mark Paid
+                      </button>
+                    </form>
+                  ) : (
+                    <span className="text-xs font-mono text-lift px-2.5 py-1 bg-lift/10 rounded">✓ Paid</span>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
