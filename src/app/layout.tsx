@@ -12,9 +12,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className="flex font-sans">
+        <body className="min-h-screen font-sans md:flex">
           <Sidebar />
-          <main className="flex-1 px-10 py-8 max-w-6xl">{children}</main>
+          <main className="w-full flex-1 px-4 py-4 sm:px-6 sm:py-6 md:max-w-6xl md:px-10 md:py-8">
+            {children}
+          </main>
         </body>
       </html>
     </ClerkProvider>

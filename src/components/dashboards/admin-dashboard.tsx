@@ -1,17 +1,5 @@
 import Link from "next/link";
-import {
-  TrendingUp,
-  Sparkles,
-  CircleDollarSign,
-  AlertTriangle,
-  ArrowUpRight,
-  Plus,
-  ArrowRight,
-  ShieldCheck,
-  FileSpreadsheet,
-  BarChart3,
-  Layers,
-} from "lucide-react";
+import { AlertTriangle, CalendarClock, CheckCircle2, CircleDollarSign, TrendingUp } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 
 function money(amount: number) {
@@ -25,296 +13,138 @@ function money(amount: number) {
 export default async function AdminDashboard() {
   const [
     activeCampaigns,
-    allCampaignsCount,
     brandCount,
     creatorCount,
     pendingPayouts,
+    pendingPayoutCount,
     outstandingInvoices,
-    recentPendingPayouts,
-    recentCreators,
+    overdueInvoices,
+    submittedApprovals,
+    deliverables,
+    recentCampaigns,
   ] = await Promise.all([
     prisma.campaign.findMany({
       where: { status: "ACTIVE" },
-      include: { brand: true, _count: { select: { deliverables: true } } },
-      orderBy: { createdAt: "desc" },
+      include: { brand: true },
     }),
-    prisma.campaign.count(),
     prisma.brand.count(),
     prisma.creator.count(),
     prisma.payout.aggregate({
       _sum: { amount: true },
-      _count: true,
       where: { status: "PENDING" },
     }),
+    prisma.payout.count({ where: { status: "PENDING" } }),
     prisma.invoice.aggregate({
       _sum: { amount: true },
-      _count: true,
       where: { status: { in: ["SENT", "OVERDUE"] } },
     }),
-    prisma.payout.findMany({
-      where: { status: "PENDING" },
-      take: 4,
-      orderBy: { createdAt: "desc" },
-      include: { deliverable: { include: { creator: true, campaign: true } } },
+    prisma.invoice.count({ where: { status: "OVERDUE" } }),
+    prisma.deliverable.count({ where: { status: "SUBMITTED" } }),
+    prisma.deliverable.findMany({
+      where: { dueDate: { not: null } },
+      include: { creator: true, campaign: true },
+      orderBy: { dueDate: "asc" },
+      take: 12,
     }),
-    prisma.creator.findMany({
-      take: 4,
+    prisma.campaign.findMany({
+      include: { brand: true },
       orderBy: { createdAt: "desc" },
-      include: { _count: { select: { deliverables: true } } },
+      take: 5,
     }),
   ]);
 
+  const totalActiveBudget = activeCampaigns.reduce((sum, campaign) => sum + Number(campaign.budget), 0);
   const pendingPayoutAmount = Number(pendingPayouts._sum.amount ?? 0);
   const outstandingInvoiceAmount = Number(outstandingInvoices._sum.amount ?? 0);
-  const totalActiveBudget = activeCampaigns.reduce((sum, c) => sum + Number(c.budget), 0);
+  const dueThisWeek = deliverables.filter(
+    (deliverable) => deliverable.dueDate && daysUntil(deliverable.dueDate) <= 7 && daysUntil(deliverable.dueDate) >= 0
+  );
 
-  const stats = [
-    {
-      label: "Active Campaigns",
-      value: activeCampaigns.length,
-      detail: `${allCampaignsCount} total campaigns across ${brandCount} brands`,
-      href: "/campaigns",
-      color: "text-lift",
-      bgColor: "bg-lift/10",
-      borderColor: "border-lift/20",
-      icon: TrendingUp,
-    },
-    {
-      label: "Creators Roster",
-      value: creatorCount,
-      detail: "Active talent across platforms",
-      href: "/creators",
-      color: "text-paper",
-      bgColor: "bg-paper/10",
-      borderColor: "border-paper/20",
-      icon: Sparkles,
-    },
-    {
-      label: "Pending Payouts",
-      value: money(pendingPayoutAmount),
-      detail: `${pendingPayouts._count} creator payouts to clear`,
-      href: "/finance?status=outstanding",
-      color: "text-amber",
-      bgColor: "bg-amber/10",
-      borderColor: "border-amber/20",
-      icon: CircleDollarSign,
-    },
-    {
-      label: "Outstanding Invoices",
-      value: money(outstandingInvoiceAmount),
-      detail: `${outstandingInvoices._count} client invoices pending`,
-      href: "/finance?status=outstanding",
-      color: "text-lift",
-      bgColor: "bg-lift/10",
-      borderColor: "border-lift/20",
-      icon: AlertTriangle,
-    },
+  const primaryStats = [
+    { label: "Active campaigns", value: activeCampaigns.length, note: `${brandCount} brands`, icon: TrendingUp },
+    { label: "Creators", value: creatorCount, note: "On roster", icon: CheckCircle2 },
+    { label: "Pending payouts", value: money(pendingPayoutAmount), note: `${pendingPayoutCount} requests`, icon: CircleDollarSign },
+    { label: "Outstanding invoices", value: money(outstandingInvoiceAmount), note: `${overdueInvoices} overdue`, icon: AlertTriangle },
   ];
 
-  const systemFlow = [
-    { step: "1", title: "Roster Creators", desc: "Add talent profiles & handles", href: "/creators" },
-    { step: "2", title: "Add Brands", desc: "Manage client brand accounts", href: "/brands" },
-    { step: "3", title: "Launch Campaigns", desc: "Set budget & assign deliverables", href: "/campaigns" },
-    { step: "4", title: "Settle Finance", desc: "Track payables & brand invoices", href: "/finance" },
+  const actionItems = [
+    {
+      title: "Approvals waiting",
+      detail: `${submittedApprovals} deliverables need review`,
+    },
+    {
+      title: "Payout queue",
+      detail: `${pendingPayoutCount} pending payout request${pendingPayoutCount === 1 ? "" : "s"}`,
+    },
+    {
+      title: "Due this week",
+      detail: `${dueThisWeek.length} deliverables due in 7 days`,
+    },
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Header & Quick Action Shortcuts */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-display font-bold tracking-tight">Admin Console</h1>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono bg-lift/10 text-lift border border-lift/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-lift animate-pulse" />
-              Full System Access
-            </span>
-          </div>
-          <p className="text-sm text-muted">Complete operational oversight across campaigns, roster, and finances.</p>
-        </div>
-
-        {/* Quick Action Bar */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <Link
-            href="/campaigns"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-panel border border-line text-paper hover:border-lift hover:text-lift transition-colors"
-          >
-            <Plus size={14} />
-            <span>Campaign</span>
-          </Link>
-          <Link
-            href="/creators"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-panel border border-line text-paper hover:border-lift hover:text-lift transition-colors"
-          >
-            <Plus size={14} />
-            <span>Creator</span>
-          </Link>
-          <Link
-            href="/api/export/finance"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-panel border border-line text-paper hover:border-lift hover:text-lift transition-colors"
-            download
-          >
-            <FileSpreadsheet size={14} />
-            <span>Export CSV</span>
-          </Link>
-          <Link
-            href="/insights"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-md bg-lift text-ink hover:opacity-90 transition-opacity"
-          >
-            <BarChart3 size={14} />
-            <span>IG Audit</span>
-          </Link>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-xl font-display font-semibold mb-1">Operations dashboard</h1>
+        <p className="text-sm text-muted">Simple overview of what needs attention today.</p>
       </div>
 
-      {/* System Operational Guide Banner for New Admins */}
-      <div className="card p-5 bg-gradient-to-r from-panel via-ink to-panel border-line">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Layers size={16} className="text-lift" />
-            <h2 className="text-sm font-display font-semibold text-paper">How MountLift Ops Works</h2>
-          </div>
-          <span className="text-[11px] font-mono text-muted">Operational Workflow</span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {systemFlow.map((s) => (
-            <Link
-              key={s.step}
-              href={s.href}
-              className="p-3 rounded-lg bg-ink/70 border border-line hover:border-lift/40 transition-colors group"
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="w-5 h-5 rounded-full bg-lift/10 border border-lift/20 text-lift font-mono text-xs flex items-center justify-center font-bold">
-                  {s.step}
-                </span>
-                <ArrowRight size={12} className="text-muted group-hover:text-lift group-hover:translate-x-0.5 transition-all" />
-              </div>
-              <div className="text-xs font-medium text-paper group-hover:text-lift transition-colors">{s.title}</div>
-              <div className="text-[11px] text-muted mt-0.5">{s.desc}</div>
-            </Link>
-          ))}
-        </div>
+      <div className="card p-4">
+        <div className="text-xs uppercase tracking-[0.18em] text-muted">Active budget</div>
+        <div className="text-2xl font-medium text-lift mt-2">{money(totalActiveBudget)}</div>
+        <div className="text-[11px] text-muted mt-1">Across all active campaigns</div>
       </div>
 
-      {/* Hero Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((s) => (
-          <Link
-            key={s.label}
-            href={s.href}
-            className="card p-5 group hover:border-lift/40 transition-all duration-200 hover:-translate-y-0.5 relative overflow-hidden"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-muted font-medium">{s.label}</span>
-              <div className={`p-2 rounded-lg ${s.bgColor} border ${s.borderColor}`}>
-                <s.icon size={18} className={s.color} />
-              </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {primaryStats.map((stat) => (
+          <div key={stat.label} className="card p-4">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="text-xs text-muted">{stat.label}</div>
+              <stat.icon size={16} className="text-lift" />
             </div>
-            <div className={`text-2xl font-display font-semibold mb-1 ${s.color}`}>{s.value}</div>
-            <div className="flex items-center justify-between text-xs text-muted">
-              <span>{s.detail}</span>
-              <ArrowUpRight size={14} className="opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-lift" />
-            </div>
-          </Link>
+            <div className="text-2xl font-medium text-lift">{stat.value}</div>
+            <div className="text-[11px] text-muted mt-1">{stat.note}</div>
+          </div>
         ))}
       </div>
 
-      {/* Main 2-Column Operational Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Columns: Active Campaigns Overview */}
-        <div className="lg:col-span-2 card p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-base font-display font-semibold text-paper">Active Campaigns Overview</h2>
-                <p className="text-xs text-muted">Live brand partnerships and budget commitments</p>
-              </div>
-              <Link href="/campaigns" className="text-xs text-lift hover:underline flex items-center gap-1 font-medium">
-                <span>All campaigns ({allCampaignsCount})</span>
-                <ArrowRight size={12} />
-              </Link>
-            </div>
-
-            <div className="divide-y divide-line border-t border-line -mx-5">
-              {activeCampaigns.length === 0 ? (
-                <div className="p-6 text-center text-sm text-muted">
-                  No active campaigns.{" "}
-                  <Link href="/campaigns" className="text-lift hover:underline font-medium">
-                    Create one
-                  </Link>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="card p-5">
+          <div className="text-xs uppercase tracking-[0.18em] text-muted">Priority actions</div>
+          <div className="text-lg font-medium text-lift mt-1 mb-4">What to handle now</div>
+          <div className="space-y-2">
+            {actionItems.map((item) => (
+              <div key={item.title} className="rounded-md border border-line bg-ink px-3 py-3">
+                <div className="flex items-center gap-2 text-sm font-medium text-lift">
+                  <CheckCircle2 size={14} />
+                  {item.title}
                 </div>
-              ) : (
-                activeCampaigns.slice(0, 5).map((c) => (
-                  <Link
-                    key={c.id}
-                    href={`/campaigns/${c.id}`}
-                    className="table-row flex items-center justify-between px-5 py-3.5 text-sm group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-lift animate-ping" />
-                      <div>
-                        <div className="font-medium text-paper group-hover:text-lift transition-colors">
-                          {c.name}
-                        </div>
-                        <div className="text-xs text-muted flex items-center gap-2 mt-0.5 font-mono">
-                          <span>{c.brand.name}</span>
-                          <span>•</span>
-                          <span>{c._count.deliverables} deliverables</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <div className="text-right font-mono">
-                        <div className="text-lift font-medium">{money(Number(c.budget))}</div>
-                        <div className="text-[10px] text-muted uppercase">Budget</div>
-                      </div>
-                      <span className="px-2.5 py-1 rounded-full text-xs font-mono bg-lift/10 text-lift border border-lift/20">
-                        ACTIVE
-                      </span>
-                    </div>
-                  </Link>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-line flex items-center justify-between text-xs text-muted font-mono">
-            <span>Total Active Budget: {money(totalActiveBudget)}</span>
-            <Link href="/campaigns" className="hover:text-lift">View detailed ledger →</Link>
+                <div className="text-xs text-muted mt-1">{item.detail}</div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Right 1 Column: Pending Payouts & Action Items */}
-        <div className="card p-5 flex flex-col justify-between space-y-6">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-sm font-display font-semibold text-paper uppercase tracking-wide">
-                  Pending Payouts
-                </h3>
-                <p className="text-xs text-muted">Payables waiting settlement</p>
-              </div>
-              <Link href="/finance?status=outstanding" className="text-xs text-amber hover:underline font-medium">
-                Finance →
-              </Link>
+        <div className="card p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="text-xs uppercase tracking-[0.18em] text-muted">Checkpoints</div>
+              <div className="text-lg font-medium text-lift mt-1">Due this week</div>
             </div>
-
-            <div className="divide-y divide-line border-t border-line -mx-5">
-              {recentPendingPayouts.length === 0 ? (
-                <div className="p-5 text-center text-xs text-muted">All creator payouts are settled!</div>
-              ) : (
-                recentPendingPayouts.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between px-5 py-3 text-xs">
-                    <div>
-                      <div className="font-medium text-paper">{p.deliverable.creator.name}</div>
-                      <div className="text-muted text-[11px] mt-0.5">{p.deliverable.campaign.name}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-amber font-medium">{money(Number(p.amount))}</span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber/10 text-amber border border-amber/20">
-                        PENDING
-                      </span>
+            <CalendarClock size={16} className="text-lift" />
+          </div>
+          <div className="space-y-2">
+            {dueThisWeek.slice(0, 5).map((item) => (
+              <div key={item.id} className="rounded-md border border-line bg-ink px-3 py-2">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-medium">{item.creator.name}</div>
+                    <div className="text-[11px] text-muted">{item.campaign.name} · {item.type}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[11px] text-muted">Due</div>
+                    <div className="text-xs font-mono text-lift">
+                      {new Date(item.dueDate ?? Date.now()).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                     </div>
                   </div>
                 ))
@@ -336,9 +166,39 @@ export default async function AdminDashboard() {
                   <span className="font-medium text-paper">{cr.name}</span>
                   <span className="text-muted font-mono">{cr.handle ? `@${cr.handle.replace(/^@/, "")}` : "—"}</span>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
+            {dueThisWeek.length === 0 && (
+              <div className="text-sm text-muted">No deliverables due this week.</div>
+            )}
           </div>
+        </div>
+      </div>
+
+      <div className="card p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <div className="text-xs uppercase tracking-[0.18em] text-muted">Recent activity</div>
+            <div className="text-lg font-medium text-lift mt-1">Latest campaigns</div>
+          </div>
+          <Link href="/campaigns" className="text-xs text-lift hover:text-yellow-300">
+            View all
+          </Link>
+        </div>
+        <div className="space-y-2">
+          {recentCampaigns.length === 0 && <div className="text-sm text-muted">No campaigns yet.</div>}
+          {recentCampaigns.map((campaign) => (
+            <div key={campaign.id} className="table-row flex items-center justify-between rounded-md border border-line bg-ink px-3 py-2">
+              <div>
+                <div className="text-sm font-medium">{campaign.name}</div>
+                <div className="text-xs text-muted">{campaign.brand.name}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs font-mono text-lift">{campaign.status}</div>
+                <div className="text-[11px] text-muted">{money(Number(campaign.budget))}</div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

@@ -14,15 +14,32 @@ export default async function CreatorManagerDashboard() {
   const needsFollowUp = creators.filter((c) => !c.handle || !c.platform).length;
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Sparkles size={20} className="text-lift" />
-            <h1 className="text-2xl font-display font-bold tracking-tight">Creator Roster</h1>
+    <div>
+      <div className="flex items-center gap-2 mb-1">
+        <Sparkles size={18} className="text-lift" />
+        <h1 className="text-xl font-display font-semibold">Creator Roster</h1>
+      </div>
+      <p className="text-sm text-muted mb-6">Everyone on the roster, at a glance.</p>
+
+      <div className="card border-lift/40 bg-gradient-to-r from-lift/10 via-ink to-panel p-4 mb-6">
+        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-lift mb-2">AI summary</div>
+        <div className="text-sm text-paper">{aiSummary}</div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        {roleWidgets.map((widget) => (
+          <div key={widget.label} className="card p-4">
+            <div className="text-[11px] uppercase tracking-[0.18em] text-muted">{widget.label}</div>
+            <div className="text-2xl font-medium text-lift mt-2">{widget.value}</div>
+            <div className="text-[11px] text-muted mt-1">{widget.hint}</div>
           </div>
-          <p className="text-sm text-muted">Talent roster management, platform profiles, and engagement performance.</p>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <div className="card p-4">
+          <div className="text-xs text-muted mb-2">Total creators</div>
+          <div className="text-2xl font-medium text-lift font-mono">{creators.length}</div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -98,23 +115,16 @@ export default async function CreatorManagerDashboard() {
         <ArrowRight size={16} className="text-lift group-hover:translate-x-1 transition-transform" />
       </Link>
 
-      {/* Creator Roster Grid */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-display font-semibold text-paper">Roster Profiles</h2>
-          <Link href="/creators" className="text-xs text-lift hover:underline flex items-center gap-1 font-medium">
-            <span>Manage all creators ({creators.length})</span>
-            <ArrowRight size={12} />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {creators.length === 0 ? (
-            <div className="col-span-full card p-6 text-center text-sm text-muted">
-              No creators on your roster yet.{" "}
-              <Link href="/creators" className="text-lift hover:underline font-medium">
-                Add your first creator
-              </Link>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        {creators.length === 0 && (
+          <div className="col-span-full xl:col-span-4 card p-4 text-sm text-muted">
+            No creators yet — add one from the Creators tab.
+          </div>
+        )}
+        {creators.map((c) => (
+          <div key={c.id} className="card p-4">
+            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-mono font-semibold mb-3 ${avatarTint(c.name)}`}>
+              {initials(c.name)}
             </div>
           ) : (
             creators.map((c) => (
