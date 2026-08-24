@@ -22,23 +22,41 @@ export default function CampaignForm({
           formRef.current?.reset();
         });
       }}
-      className={`card p-4 grid ${showBudget ? "grid-cols-4" : "grid-cols-3"} gap-3 mb-6`}
+      className="card p-4 mb-6"
     >
-      <input className="input" name="name" placeholder="Campaign name" required />
-      <select className="input" name="brandId" required defaultValue="">
-        <option value="" disabled>
-          Select brand
-        </option>
-        {brands.map((b) => (
-          <option key={b.id} value={b.id}>
-            {b.name}
-          </option>
-        ))}
-      </select>
-      {showBudget && <input className="input" name="budget" placeholder="Budget" type="number" min="0" />}
-      <button className="btn" disabled={isPending}>
-        {isPending ? "Creating…" : "Create campaign"}
-      </button>
+      <div className="text-xs text-muted mb-3">
+        Quick setup: choose a name and brand first. Budget is optional and can be adjusted later.
+      </div>
+      <div className={`grid grid-cols-1 md:grid-cols-2 ${showBudget ? "xl:grid-cols-3" : "xl:grid-cols-2"} gap-3`}>
+        <label className="space-y-1">
+          <span className="text-xs text-muted">Campaign name *</span>
+          <input className="input" name="name" placeholder="e.g. Summer Launch 2026" required />
+        </label>
+        <label className="space-y-1">
+          <span className="text-xs text-muted">Brand *</span>
+          <select className="input" name="brandId" required defaultValue="">
+            <option value="" disabled>
+              Select brand
+            </option>
+            {brands.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        {showBudget && (
+          <label className="space-y-1">
+            <span className="text-xs text-muted">Budget (optional)</span>
+            <input className="input" name="budget" placeholder="e.g. 50000" type="number" min="0" />
+          </label>
+        )}
+      </div>
+      <div className="mt-4">
+        <button className="btn" disabled={isPending}>
+          {isPending ? "Creating…" : "Create campaign"}
+        </button>
+      </div>
     </form>
   );
 }

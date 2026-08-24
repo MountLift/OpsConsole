@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import AuditPanel from "./audit-panel";
 import { requireAccess } from "@/lib/require-access";
+import { BarChart3 } from "lucide-react";
 
 export default async function InsightsPage() {
   await requireAccess("/insights");
@@ -11,11 +12,16 @@ export default async function InsightsPage() {
   });
 
   return (
-    <div>
-      <h1 className="text-xl font-display font-semibold mb-1">Insights</h1>
-      <p className="text-sm text-muted mb-6">
-        Instagram engagement audits — pick creators from your roster or paste handles directly.
-      </p>
+    <div className="space-y-8">
+      <div>
+        <div className="flex items-center gap-2 mb-1">
+          <BarChart3 size={22} className="text-lift" />
+          <h1 className="text-2xl font-display font-bold tracking-tight">Analytics & Insights</h1>
+        </div>
+        <p className="text-sm text-muted">
+          Instagram engagement audits — analyze views, likes, comments, and posting consistency across your roster or manual handles.
+        </p>
+      </div>
 
       <AuditPanel creators={creators} />
     </div>

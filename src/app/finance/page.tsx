@@ -64,7 +64,7 @@ export default async function FinancePage({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-display font-bold tracking-tight mb-1">Finance</h1>
-          <p className="text-sm text-muted">Ledgers for creator payouts (payable) and brand invoices (receivable).</p>
+          <p className="text-sm text-muted">Manage money flow: what you owe creators and what brands owe you.</p>
         </div>
         <a
           href={exportUrl}
@@ -82,7 +82,7 @@ export default async function FinancePage({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="card p-5">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-muted font-medium">Outstanding Creator Payouts (Payable)</span>
+            <span className="text-xs text-muted font-medium">To pay creators</span>
             <span className="p-2 rounded-lg bg-amber/10 border border-amber/20 text-amber">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -90,11 +90,11 @@ export default async function FinancePage({
             </span>
           </div>
           <div className="text-2xl font-display font-semibold text-amber">{money(totalPayable)}</div>
-          <p className="text-xs text-muted mt-1">Owed to creators across active campaigns</p>
+          <p className="text-xs text-muted mt-1">Amount your team still needs to pay creators</p>
         </div>
         <div className="card p-5">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-muted font-medium">Outstanding Brand Invoices (Receivable)</span>
+            <span className="text-xs text-muted font-medium">To collect from brands</span>
             <span className="p-2 rounded-lg bg-lift/10 border border-lift/20 text-lift">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -102,7 +102,7 @@ export default async function FinancePage({
             </span>
           </div>
           <div className="text-2xl font-display font-semibold text-lift">{money(totalReceivable)}</div>
-          <p className="text-xs text-muted mt-1">Owed by client brands to agency</p>
+          <p className="text-xs text-muted mt-1">Amount client brands still need to pay</p>
         </div>
       </div>
 

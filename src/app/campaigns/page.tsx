@@ -111,6 +111,9 @@ export default async function CampaignsPage({
 
       <div>
         <h2 className="text-xs font-mono uppercase tracking-wider text-muted mb-3">Create Campaign</h2>
+        <p className="text-xs text-muted mb-3">
+          Beginner tip: pick a brand and campaign name first, then fill budget and details after saving.
+        </p>
         <CampaignForm brands={brands} showBudget={showMoney} />
       </div>
 

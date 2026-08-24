@@ -88,6 +88,9 @@ export default async function CreatorsPage({
 
       <div>
         <h2 className="text-xs font-mono uppercase tracking-wider text-muted mb-3">Add New Creator</h2>
+        <p className="text-xs text-muted mb-3">
+          Beginner tip: start with name and handle. You can edit platform and email later.
+        </p>
         <CreatorForm />
       </div>
 

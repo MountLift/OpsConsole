@@ -68,6 +68,9 @@ export default async function BrandsPage({
 
       <div>
         <h2 className="text-xs font-mono uppercase tracking-wider text-muted mb-3">Add New Brand</h2>
+        <p className="text-xs text-muted mb-3">
+          Beginner tip: add only the brand name first. Contact details can be filled in later.
+        </p>
         <BrandForm />
       </div>
 
