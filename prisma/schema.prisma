@@ -57,30 +57,47 @@ model Brand {
 }
 
 model Creator {
-  id           String        @id @default(cuid())
+  id           String           @id @default(cuid())
   name         String
   handle       String?
   platform     String? // e.g. Instagram, TikTok, YouTube
   email        String?
   rateCard     String? // free-text summary; can be normalized later
   notes        String?
-  createdAt    DateTime      @default(now())
+  createdAt    DateTime         @default(now())
   deliverables Deliverable[]
+  insights     CreatorInsight[]
+}
+
+model CreatorInsight {
+  id                   String   @id @default(cuid())
+  creator              Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  creatorId            String
+  avgViews             Float?
+  medianViews          Float?
+  avgLikes             Float?
+  avgComments          Float?
+  engagementRate       Float?
+  consistencyLabel     String?
+  postingFrequencyDays Float?
+  viewToFollowerRatio  Float?
+  raw                  Json
+  createdAt            DateTime @default(now())
 }
 
 model Campaign {
-  id          String         @id @default(cuid())
-  name        String
-  brand       Brand          @relation(fields: [brandId], references: [id], onDelete: Cascade)
-  brandId     String
-  budget      Decimal        @default(0) @db.Decimal(12, 2)
-  status      CampaignStatus @default(PLANNING)
-  startDate   DateTime?
-  endDate     DateTime?
-  notes       String?
-  createdAt   DateTime       @default(now())
+  id           String         @id @default(cuid())
+  name         String
+  brand        Brand          @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  brandId      String
+  budget       Decimal        @default(0) @db.Decimal(12, 2)
+  status       CampaignStatus @default(PLANNING)
+  startDate    DateTime?
+  endDate      DateTime?
+  notes        String?
+  createdAt    DateTime       @default(now())
   deliverables Deliverable[]
-  invoices    Invoice[]
+  invoices     Invoice[]
 }
 
 model Deliverable {

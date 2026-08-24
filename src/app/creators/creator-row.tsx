@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import DeleteButton from "@/components/delete-button";
 import { updateCreator, deleteCreator } from "./actions";
 
@@ -48,12 +49,12 @@ export default function CreatorRow({ creator }: { creator: Creator }) {
 
   return (
     <div className="table-row flex items-center justify-between px-5 py-3.5 text-sm group">
-      <div className="flex items-center gap-3">
+      <Link href={`/creators/${creator.id}`} className="flex items-center gap-3 flex-1">
         <div className="w-8 h-8 rounded-full bg-lift/10 border border-lift/20 text-lift flex items-center justify-center font-display font-bold text-xs uppercase">
           {creator.name.charAt(0)}
         </div>
         <div>
-          <div className="font-medium text-paper flex items-center gap-2">
+          <div className="font-medium text-paper group-hover:text-lift transition-colors flex items-center gap-2">
             <span>{creator.name}</span>
             {creator.email && (
               <span className="text-[11px] text-muted font-mono hidden sm:inline">({creator.email})</span>
@@ -65,7 +66,7 @@ export default function CreatorRow({ creator }: { creator: Creator }) {
             <span>{platform}</span>
           </div>
         </div>
-      </div>
+      </Link>
 
       <div className="flex items-center gap-4">
         <span className="px-2.5 py-1 rounded-full text-xs font-mono bg-panel text-muted border border-line">

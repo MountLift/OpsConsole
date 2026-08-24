@@ -1,18 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Play, FileSpreadsheet, Loader2, Sparkles, AlertCircle, ChevronDown } from "lucide-react";
+import { Search, Play, FileSpreadsheet, Loader2, Sparkles, AlertCircle, ChevronDown, CheckCircle2 } from "lucide-react";
+import { saveInsightSnapshot, extractInsightMetrics } from "./actions";
 
 type Creator = { id: string; name: string; handle: string | null; platform: string | null };
 type AuditResult = Record<string, any>;
 
 function pct(n: unknown) {
-  if (typeof n !== "number") return "—";
+  if (typeof n !== "number" || isNaN(n)) return "—";
   return `${n.toFixed(1)}%`;
 }
 
 function num(n: unknown) {
-  if (typeof n !== "number") return "—";
+  if (typeof n !== "number" || isNaN(n)) return "—";
   return n.toLocaleString("en-US", { maximumFractionDigits: 1 });
 }
 
@@ -31,6 +32,8 @@ export default function AuditPanel({ creators }: { creators: Creator[] }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<Record<string, AuditResult> | null>(null);
+  const [extractedMetricsMap, setExtractedMetricsMap] = useState<Record<string, any>>({});
+  const [savedHandles, setSavedHandles] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
 
   const igCreators = creators.filter(
@@ -75,6 +78,8 @@ export default function AuditPanel({ creators }: { creators: Creator[] }) {
     setLoading(true);
     setError(null);
     setResults(null);
+    setSavedHandles([]);
+    setExtractedMetricsMap({});
 
     try {
       const res = await fetch("/api/instagram-audit", {
@@ -87,7 +92,27 @@ export default function AuditPanel({ creators }: { creators: Creator[] }) {
         setError(data.error ?? "The scraper backend returned an error.");
         return;
       }
-      setResults(data.results ?? data);
+
+      const resObj: Record<string, AuditResult> = data.results ?? data;
+      setResults(resObj);
+
+      // Extract metrics and auto-save snapshots for roster matches
+      const saved: string[] = [];
+      const metricsMap: Record<string, any> = {};
+
+      for (const [handle, rawData] of Object.entries(resObj)) {
+        if (rawData && !rawData.error) {
+          const metrics = await extractInsightMetrics(rawData);
+          metricsMap[handle] = metrics;
+
+          const savedInsight = await saveInsightSnapshot(handle, rawData);
+          if (savedInsight) {
+            saved.push(handle.toLowerCase());
+          }
+        }
+      }
+      setExtractedMetricsMap(metricsMap);
+      setSavedHandles(saved);
     } catch {
       setError("Couldn't reach the scraper backend. If it's been idle, it may still be waking up — try again in a moment.");
     } finally {
@@ -256,74 +281,87 @@ export default function AuditPanel({ creators }: { creators: Creator[] }) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.entries(results).map(([handle, r]) => (
-              <div key={handle} className="card p-5 space-y-4">
-                {/* Profile Header */}
-                <div className="flex items-center justify-between pb-3 border-b border-line">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-lift/10 border border-lift/20 text-lift flex items-center justify-center font-display font-bold text-xs">
-                      @
+            {Object.entries(results).map(([handle, rawObj]) => {
+              const metrics = extractedMetricsMap[handle] ?? {};
+              const isSaved = savedHandles.includes(handle.toLowerCase());
+
+              return (
+                <div key={handle} className="card p-5 space-y-4">
+                  {/* Profile Header */}
+                  <div className="flex items-center justify-between pb-3 border-b border-line">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-lift/10 border border-lift/20 text-lift flex items-center justify-center font-display font-bold text-xs">
+                        @
+                      </div>
+                      <div>
+                        <div className="font-display font-semibold text-paper text-sm flex items-center gap-2">
+                          <span>@{handle}</span>
+                          {isSaved && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono bg-lift/10 text-lift border border-lift/20">
+                              <CheckCircle2 size={10} />
+                              Auto-Saved
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-muted font-mono">Instagram Profile</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="font-display font-semibold text-paper text-sm">@{handle}</div>
-                      <div className="text-[11px] text-muted font-mono">Instagram Profile</div>
+
+                    {metrics.consistencyLabel && (
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-mono border ${consistencyColor(metrics.consistencyLabel)}`}>
+                        {metrics.consistencyLabel}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Performance Metrics Grid */}
+                  <div className="grid grid-cols-2 gap-3 text-xs font-mono">
+                    <div className="p-2.5 rounded bg-ink border border-line">
+                      <div className="text-muted text-[10px] uppercase">Engagement Rate</div>
+                      <div className="text-base font-semibold text-lift mt-0.5">{pct(metrics.engagementRate)}</div>
+                    </div>
+
+                    <div className="p-2.5 rounded bg-ink border border-line">
+                      <div className="text-muted text-[10px] uppercase">Avg Views</div>
+                      <div className="text-base font-semibold text-paper mt-0.5">{num(metrics.avgViews)}</div>
+                    </div>
+
+                    <div className="p-2.5 rounded bg-ink border border-line">
+                      <div className="text-muted text-[10px] uppercase">Median Views</div>
+                      <div className="text-sm font-medium text-paper mt-0.5">{num(metrics.medianViews)}</div>
+                    </div>
+
+                    <div className="p-2.5 rounded bg-ink border border-line">
+                      <div className="text-muted text-[10px] uppercase">Avg Likes</div>
+                      <div className="text-sm font-medium text-paper mt-0.5">{num(metrics.avgLikes)}</div>
+                    </div>
+
+                    <div className="p-2.5 rounded bg-ink border border-line">
+                      <div className="text-muted text-[10px] uppercase">Avg Comments</div>
+                      <div className="text-sm font-medium text-paper mt-0.5">{num(metrics.avgComments)}</div>
+                    </div>
+
+                    <div className="p-2.5 rounded bg-ink border border-line">
+                      <div className="text-muted text-[10px] uppercase">Post Frequency</div>
+                      <div className="text-sm font-medium text-paper mt-0.5">
+                        {metrics.postingFrequencyDays != null ? `${num(metrics.postingFrequencyDays)}d avg` : "—"}
+                      </div>
                     </div>
                   </div>
 
-                  {r?.consistency?.label && (
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-mono border ${consistencyColor(r.consistency.label)}`}>
-                      {r.consistency.label}
-                    </span>
-                  )}
+                  {/* Raw Inspector */}
+                  <details className="group pt-2">
+                    <summary className="text-xs text-muted cursor-pointer hover:text-lift flex items-center gap-1 font-mono">
+                      <ChevronDown size={14} className="group-open:rotate-180 transition-transform" />
+                      <span>Raw JSON Response</span>
+                    </summary>
+                    <pre className="text-[11px] font-mono text-muted bg-ink p-3 rounded-lg border border-line mt-2 overflow-x-auto max-h-48">
+                      {JSON.stringify(rawObj, null, 2)}
+                    </pre>
+                  </details>
                 </div>
-
-                {/* Performance Metrics Grid */}
-                <div className="grid grid-cols-2 gap-3 text-xs font-mono">
-                  <div className="p-2.5 rounded bg-ink border border-line">
-                    <div className="text-muted text-[10px] uppercase">Engagement Rate</div>
-                    <div className="text-base font-semibold text-lift mt-0.5">{pct(r?.engagementRate)}</div>
-                  </div>
-
-                  <div className="p-2.5 rounded bg-ink border border-line">
-                    <div className="text-muted text-[10px] uppercase">Avg Views</div>
-                    <div className="text-base font-semibold text-paper mt-0.5">{num(r?.avgViews)}</div>
-                  </div>
-
-                  <div className="p-2.5 rounded bg-ink border border-line">
-                    <div className="text-muted text-[10px] uppercase">Median Views</div>
-                    <div className="text-sm font-medium text-paper mt-0.5">{num(r?.medianViews)}</div>
-                  </div>
-
-                  <div className="p-2.5 rounded bg-ink border border-line">
-                    <div className="text-muted text-[10px] uppercase">Avg Likes</div>
-                    <div className="text-sm font-medium text-paper mt-0.5">{num(r?.avgLikes)}</div>
-                  </div>
-
-                  <div className="p-2.5 rounded bg-ink border border-line">
-                    <div className="text-muted text-[10px] uppercase">Avg Comments</div>
-                    <div className="text-sm font-medium text-paper mt-0.5">{num(r?.avgComments)}</div>
-                  </div>
-
-                  <div className="p-2.5 rounded bg-ink border border-line">
-                    <div className="text-muted text-[10px] uppercase">Post Frequency</div>
-                    <div className="text-sm font-medium text-paper mt-0.5">
-                      {r?.postingFrequencyDays != null ? `${num(r.postingFrequencyDays)}d avg` : "—"}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Raw Inspector */}
-                <details className="group pt-2">
-                  <summary className="text-xs text-muted cursor-pointer hover:text-lift flex items-center gap-1 font-mono">
-                    <ChevronDown size={14} className="group-open:rotate-180 transition-transform" />
-                    <span>Raw JSON Response</span>
-                  </summary>
-                  <pre className="text-[11px] font-mono text-muted bg-ink p-3 rounded-lg border border-line mt-2 overflow-x-auto max-h-48">
-                    {JSON.stringify(r, null, 2)}
-                  </pre>
-                </details>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
