@@ -54,6 +54,7 @@ model Brand {
   createdAt    DateTime   @default(now())
   campaigns    Campaign[]
   invoices     Invoice[]
+  accountManagerAssignments AccountManagerAssignment[]
 }
 
 model Creator {
@@ -67,6 +68,43 @@ model Creator {
   createdAt    DateTime         @default(now())
   deliverables Deliverable[]
   insights     CreatorInsight[]
+  managerAssignments CreatorManagerAssignment[]
+}
+
+// Clerk remains the source of truth for authentication and top-level role.
+// These records only define which operational records a staff member may see.
+model CreatorManagerAssignment {
+  id          String   @id @default(cuid())
+  clerkUserId String
+  creator     Creator  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  creatorId   String
+  createdAt   DateTime @default(now())
+
+  @@unique([clerkUserId, creatorId])
+  @@index([clerkUserId])
+}
+
+model AccountManagerAssignment {
+  id          String   @id @default(cuid())
+  clerkUserId String
+  brand       Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  brandId     String
+  createdAt   DateTime @default(now())
+
+  @@unique([clerkUserId, brandId])
+  @@index([clerkUserId])
+}
+
+// An admin can send a focused brief or update to one Creator Manager.
+model ManagerUpdate {
+  id                String   @id @default(cuid())
+  targetClerkUserId String
+  title             String
+  body              String
+  createdByClerkId  String
+  createdAt         DateTime @default(now())
+
+  @@index([targetClerkUserId, createdAt])
 }
 
 model CreatorInsight {

@@ -2,8 +2,10 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { requireAdmin, requireContext, creatorScope } from "@/lib/access";
 
 export async function createCreator(formData: FormData) {
+  await requireAdmin();
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return;
 
@@ -21,6 +23,7 @@ export async function createCreator(formData: FormData) {
 }
 
 export async function deleteCreator(id: string) {
+  await requireAdmin();
   await prisma.payout.deleteMany({
     where: { deliverable: { creatorId: id } },
   });
@@ -35,9 +38,13 @@ export async function deleteCreator(id: string) {
 }
 
 export async function updateCreator(id: string, formData: FormData) {
+  const context = await requireContext();
+  if (context.role !== "ADMIN") return;
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return;
 
+  const creator = await prisma.creator.findFirst({ where: { id, ...creatorScope(context) }, select: { id: true } });
+  if (!creator) return;
   await prisma.creator.update({
     where: { id },
     data: {

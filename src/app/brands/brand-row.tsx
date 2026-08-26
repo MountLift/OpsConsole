@@ -12,7 +12,7 @@ type Brand = {
   _count: { campaigns: number };
 };
 
-export default function BrandRow({ brand }: { brand: Brand }) {
+export default function BrandRow({ brand, canManage }: { brand: Brand; canManage: boolean }) {
   const [editing, setEditing] = useState(false);
 
   if (editing) {
@@ -68,17 +68,17 @@ export default function BrandRow({ brand }: { brand: Brand }) {
           {brand._count.campaigns} campaign{brand._count.campaigns === 1 ? "" : "s"}
         </span>
 
-        <button
+        {canManage && <button
           className="text-xs text-muted hover:text-lift font-medium transition-colors"
           onClick={() => setEditing(true)}
         >
           Edit
-        </button>
+        </button>}
 
-        <DeleteButton
+        {canManage && <DeleteButton
           onDelete={deleteBrand.bind(null, brand.id)}
           confirmMessage={`Remove ${brand.name}? This also removes its ${brand._count.campaigns} campaign${brand._count.campaigns === 1 ? "" : "s"} and everything linked to them (deliverables, payouts, invoices).`}
-        />
+        />}
       </div>
     </div>
   );

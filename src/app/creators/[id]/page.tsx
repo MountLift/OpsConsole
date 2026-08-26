@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Sparkles, Calendar, BarChart3, ChevronDown, CheckCircle2 } from "lucide-react";
 import DeleteButton from "@/components/delete-button";
 import { deleteCreator } from "../actions";
+import { requireContext, creatorScope } from "@/lib/access";
 
 function pct(n: number | null | undefined) {
   if (n === null || n === undefined || isNaN(n)) return "—";
@@ -26,9 +27,10 @@ function consistencyColor(label: string | null | undefined) {
 
 export default async function CreatorProfilePage({ params }: { params: { id: string } }) {
   await requireAccess("/creators");
+  const context = await requireContext();
 
   const creator = await prisma.creator.findUnique({
-    where: { id: params.id },
+    where: { id: params.id, ...creatorScope(context) },
     include: {
       _count: { select: { deliverables: true } },
       insights: { orderBy: { createdAt: "desc" } },
@@ -84,10 +86,10 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
                 <BarChart3 size={14} />
                 <span>Run Audit</span>
               </Link>
-              <DeleteButton
+              {context.role === "ADMIN" && <DeleteButton
                 onDelete={deleteCreator.bind(null, creator.id)}
                 confirmMessage={`Remove ${creator.name}? This also removes their deliverables and audit insights.`}
-              />
+              />}
             </div>
           </div>
         </div>

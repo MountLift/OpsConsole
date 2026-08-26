@@ -3,7 +3,7 @@
 import { MoonStar, SunMedium } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export default function ThemeToggle() {
+export default function ThemeToggle({ iconOnly = false }: { iconOnly?: boolean }) {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   useEffect(() => {
@@ -24,11 +24,12 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="inline-flex items-center gap-2 rounded-full border border-line bg-ink/60 px-2.5 py-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-paper transition-colors hover:border-lift hover:text-lift"
-      aria-label="Toggle color theme"
+      className={`inline-flex items-center gap-2 rounded-full border border-line bg-ink/60 ${iconOnly ? "p-2" : "px-2.5 py-1.5"} text-[10px] font-medium uppercase tracking-[0.16em] text-paper transition-colors hover:border-lift hover:text-lift`}
+      aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
+      title={`Switch to ${isDark ? "light" : "dark"} theme`}
     >
       {isDark ? <SunMedium size={12} /> : <MoonStar size={12} />}
-      {isDark ? "Light" : "Dark"}
+      {!iconOnly && (isDark ? "Light" : "Dark")}
     </button>
   );
 }

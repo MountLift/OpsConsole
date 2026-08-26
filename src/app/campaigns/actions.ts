@@ -2,8 +2,10 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { requireAdmin, requireContext, campaignScope } from "@/lib/access";
 
 export async function createCampaign(formData: FormData) {
+  await requireAdmin();
   const name = String(formData.get("name") ?? "").trim();
   const brandId = String(formData.get("brandId") ?? "");
   if (!name || !brandId) return;
@@ -20,6 +22,7 @@ export async function createCampaign(formData: FormData) {
 }
 
 export async function addDeliverable(campaignId: string, formData: FormData) {
+  await requireAdmin();
   const creatorId = String(formData.get("creatorId") ?? "");
   if (!creatorId) return;
 
@@ -36,6 +39,8 @@ export async function addDeliverable(campaignId: string, formData: FormData) {
 }
 
 export async function updateCampaign(id: string, formData: FormData) {
+  const context = await requireContext();
+  if (context.role === "CREATOR_MANAGER") return;
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return;
 
@@ -50,6 +55,8 @@ export async function updateCampaign(id: string, formData: FormData) {
     data.budget = Number(formData.get("budget") ?? 0);
   }
 
+  const campaign = await prisma.campaign.findFirst({ where: { id, ...campaignScope(context) }, select: { id: true } });
+  if (!campaign) return;
   await prisma.campaign.update({ where: { id }, data });
 
   revalidatePath("/campaigns");
@@ -57,6 +64,7 @@ export async function updateCampaign(id: string, formData: FormData) {
 }
 
 export async function deleteCampaign(id: string) {
+  await requireAdmin();
   await prisma.campaign.delete({ where: { id } });
   revalidatePath("/campaigns");
   revalidatePath("/finance");
@@ -64,6 +72,7 @@ export async function deleteCampaign(id: string) {
 }
 
 export async function deleteDeliverable(id: string, campaignId: string) {
+  await requireAdmin();
   await prisma.deliverable.delete({ where: { id } });
   revalidatePath(`/campaigns/${campaignId}`);
   revalidatePath("/finance");

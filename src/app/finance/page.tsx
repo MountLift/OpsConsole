@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { markPayoutPaid, markInvoicePaid } from "./actions";
+import { markPayoutPaid, markInvoicePaid, updateInvoice, updatePayout } from "./actions";
 import { requireAccess } from "@/lib/require-access";
 
 function money(n: number) {
@@ -59,7 +59,7 @@ export default async function FinancePage({
   const exportUrl = `/api/export/finance${hasFilter ? `?q=${encodeURIComponent(query)}&status=${encodeURIComponent(statusFilter)}` : ""}`;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 finance-shell">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -80,19 +80,19 @@ export default async function FinancePage({
 
       {/* Summary Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="card p-5">
+        <div className="glass-card p-5">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-muted font-medium">To pay creators</span>
-            <span className="p-2 rounded-lg bg-amber/10 border border-amber/20 text-amber">
+            {totalPayable > 0 && <span className="p-2 rounded-lg bg-amber/10 border border-amber/20 text-amber">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-            </span>
+            </span>}
           </div>
-          <div className="text-2xl font-display font-semibold text-amber">{money(totalPayable)}</div>
+          <div className={`text-2xl font-display font-semibold ${totalPayable > 0 ? "text-amber" : "text-lift"}`}>{money(totalPayable)}</div>
           <p className="text-xs text-muted mt-1">Amount your team still needs to pay creators</p>
         </div>
-        <div className="card p-5">
+        <div className="glass-card p-5">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-muted font-medium">To collect from brands</span>
             <span className="p-2 rounded-lg bg-lift/10 border border-lift/20 text-lift">
@@ -144,6 +144,14 @@ export default async function FinancePage({
                     <span>•</span>
                     <span className={p.status === "PAID" ? "text-lift" : "text-amber"}>{p.status}</span>
                   </div>
+                  <details className="mt-2 group">
+                    <summary className="cursor-pointer text-xs text-muted hover:text-lift list-none">Edit payout <span className="group-open:hidden">+</span><span className="hidden group-open:inline">−</span></summary>
+                    <form action={updatePayout.bind(null, p.id)} className="mt-3 flex flex-wrap items-center gap-2" >
+                      <input className="input w-28 py-1.5 text-xs" name="amount" type="number" min="0" step="0.01" defaultValue={Number(p.amount)} aria-label="Payout amount" required />
+                      <select className="input w-32 py-1.5 text-xs" name="status" defaultValue={p.status}><option value="PENDING">Pending</option><option value="APPROVED">Approved</option><option value="PAID">Paid</option></select>
+                      <button className="btn btn-small">Save</button>
+                    </form>
+                  </details>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="font-mono text-paper font-medium">{money(Number(p.amount))}</div>
@@ -184,6 +192,14 @@ export default async function FinancePage({
                     <span>•</span>
                     <span className={i.status === "PAID" ? "text-lift" : "text-amber"}>{i.status}</span>
                   </div>
+                  <details className="mt-2 group">
+                    <summary className="cursor-pointer text-xs text-muted hover:text-lift list-none">Edit invoice <span className="group-open:hidden">+</span><span className="hidden group-open:inline">−</span></summary>
+                    <form action={updateInvoice.bind(null, i.id)} className="mt-3 flex flex-wrap items-center gap-2">
+                      <input className="input w-28 py-1.5 text-xs" name="amount" type="number" min="0" step="0.01" defaultValue={Number(i.amount)} aria-label="Invoice amount" required />
+                      <select className="input w-32 py-1.5 text-xs" name="status" defaultValue={i.status}><option value="DRAFT">Draft</option><option value="SENT">Sent</option><option value="PAID">Paid</option><option value="OVERDUE">Overdue</option></select>
+                      <button className="btn btn-small">Save</button>
+                    </form>
+                  </details>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="font-mono text-paper font-medium">{money(Number(i.amount))}</div>

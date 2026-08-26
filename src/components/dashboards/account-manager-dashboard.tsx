@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Briefcase, Plus, ArrowRight, Layers } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { requireContext, brandScope, campaignScope, creatorScope } from "@/lib/access";
 
 const COLUMNS = [
   { status: "PLANNING", label: "Planning", color: "text-paper border-paper/20 bg-paper/10" },
@@ -10,13 +11,15 @@ const COLUMNS = [
 ] as const;
 
 export default async function AccountManagerDashboard() {
+  const context = await requireContext();
   const [campaigns, brandCount, creatorCount] = await Promise.all([
     prisma.campaign.findMany({
+      where: campaignScope(context),
       include: { brand: true, _count: { select: { deliverables: true } } },
       orderBy: { createdAt: "desc" },
     }),
-    prisma.brand.count(),
-    prisma.creator.count(),
+    prisma.brand.count({ where: brandScope(context) }),
+    prisma.creator.count({ where: creatorScope(context) }),
   ]);
 
   const byStatus = (status: string) => campaigns.filter((c) => c.status === status);
@@ -25,58 +28,49 @@ export default async function AccountManagerDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Briefcase size={20} className="text-lift" />
-            <h1 className="text-2xl font-display font-bold tracking-tight">Campaign Pipeline</h1>
-          </div>
-          <p className="text-sm text-muted">Manage campaign workflows, brand client relations, and deliverables.</p>
+          <p className="eyebrow">Assigned accounts</p>
+          <h1 className="text-3xl font-display font-bold tracking-tight">Campaign pipeline</h1>
+          <p className="text-sm text-muted mt-1">{activeCampaigns} active · {planningCampaigns} in planning</p>
         </div>
-
         <Link
           href="/campaigns"
           className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-md bg-lift text-ink hover:opacity-90 transition-opacity w-fit"
         >
-          <Plus size={14} />
-          <span>New Campaign</span>
+          <span>Open campaigns</span><ArrowRight size={14} />
         </Link>
       </div>
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="card p-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="card p-5 col-span-2">
           <div className="text-xs text-muted font-medium mb-1">Active Campaigns</div>
-          <div className="text-2xl font-display font-semibold text-lift">{activeCampaigns}</div>
-          <div className="text-[11px] text-muted mt-1">Currently running live</div>
+          <div className="text-4xl font-display font-semibold text-lift">{activeCampaigns}</div>
+          <div className="text-[11px] text-muted mt-1">Campaigns currently running for your accounts</div>
         </div>
         <div className="card p-4">
           <div className="text-xs text-muted font-medium mb-1">In Planning</div>
           <div className="text-2xl font-display font-semibold text-paper">{planningCampaigns}</div>
-          <div className="text-[11px] text-muted mt-1">Setup & onboarding</div>
+          <div className="text-[11px] text-muted mt-1">Waiting to go live</div>
         </div>
         <div className="card p-4">
           <div className="text-xs text-muted font-medium mb-1">Brands Represented</div>
-          <div className="text-2xl font-display font-semibold text-paper">{brandCount}</div>
-          <div className="text-[11px] text-muted mt-1">Active client accounts</div>
+          <div className="text-2xl font-display font-semibold text-lift">{brandCount}</div>
+          <div className="text-[11px] text-muted mt-1">{brandCount === 1 ? "Client account" : "Client accounts"}</div>
         </div>
         <div className="card p-4">
           <div className="text-xs text-muted font-medium mb-1">Roster Talent</div>
-          <div className="text-2xl font-display font-semibold text-lift">{creatorCount}</div>
-          <div className="text-[11px] text-muted mt-1">Available creators</div>
+          <div className="text-2xl font-display font-semibold text-paper">{creatorCount}</div>
+          <div className="text-[11px] text-muted mt-1">Creators on assigned work</div>
         </div>
       </div>
 
       {/* Kanban Pipeline Columns */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-display font-semibold text-paper flex items-center gap-2">
-            <Layers size={16} className="text-lift" />
-            <span>Campaign Lifecycle Pipeline</span>
-          </h2>
+          <h2 className="text-base font-display font-semibold text-paper">Campaign lifecycle</h2>
           <Link href="/campaigns" className="text-xs text-lift hover:underline flex items-center gap-1 font-medium">
-            <span>Manage all campaigns ({campaigns.length})</span>
+            <span>All {campaigns.length} campaigns</span>
             <ArrowRight size={12} />
           </Link>
         </div>
@@ -113,7 +107,7 @@ export default async function AccountManagerDashboard() {
                           </div>
                           <div className="text-xs text-muted flex items-center justify-between mt-1 font-mono">
                             <span>{c.brand.name}</span>
-                            <span>{c._count.deliverables} posts</span>
+                            <span>{c._count.deliverables} deliverable{c._count.deliverables === 1 ? "" : "s"}</span>
                           </div>
                         </Link>
                       ))

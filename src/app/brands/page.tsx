@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import BrandForm from "./brand-form";
 import BrandRow from "./brand-row";
 import { requireAccess } from "@/lib/require-access";
+import { requireContext, brandScope } from "@/lib/access";
 
 export default async function BrandsPage({
   searchParams,
@@ -10,9 +11,10 @@ export default async function BrandsPage({
   searchParams?: { q?: string };
 }) {
   await requireAccess("/brands");
+  const context = await requireContext();
 
   const query = searchParams?.q?.trim() ?? "";
-  const whereClause: any = {};
+  const whereClause: any = { ...brandScope(context) };
   if (query) {
     whereClause.OR = [
       { name: { contains: query, mode: "insensitive" } },
@@ -27,18 +29,18 @@ export default async function BrandsPage({
       orderBy: { createdAt: "desc" },
       include: { _count: { select: { campaigns: true } } },
     }),
-    prisma.brand.count(),
-    prisma.campaign.count(),
+    prisma.brand.count({ where: brandScope(context) }),
+    prisma.campaign.count({ where: { brand: brandScope(context) } }),
   ]);
 
   const hasFilter = Boolean(query);
 
   return (
     <div className="space-y-8">
-      <div>
+      {context.role === "ADMIN" && <div>
         <h1 className="text-2xl font-display font-bold tracking-tight mb-1">Brands</h1>
         <p className="text-sm text-muted">Client brand partnerships and linked campaigns.</p>
-      </div>
+      </div>}
 
       {/* Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -91,7 +93,7 @@ export default async function BrandsPage({
             {hasFilter ? "No brands match your search query." : "No brands yet — add one above."}
           </div>
         ) : (
-          brands.map((b) => <BrandRow key={b.id} brand={b} />)
+          brands.map((b) => <BrandRow key={b.id} brand={b} canManage={context.role === "ADMIN"} />)
         )}
       </div>
     </div>

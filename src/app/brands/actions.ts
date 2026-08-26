@@ -2,8 +2,10 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/access";
 
 export async function createBrand(formData: FormData) {
+  await requireAdmin();
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return;
 
@@ -19,6 +21,7 @@ export async function createBrand(formData: FormData) {
 }
 
 export async function deleteBrand(id: string) {
+  await requireAdmin();
   await prisma.payout.deleteMany({
     where: { deliverable: { campaign: { brandId: id } } },
   });
@@ -39,6 +42,7 @@ export async function deleteBrand(id: string) {
 }
 
 export async function updateBrand(id: string, formData: FormData) {
+  await requireAdmin();
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return;
 

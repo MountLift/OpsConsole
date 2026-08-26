@@ -1,6 +1,12 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
+import { getRole } from "@/lib/get-role";
 
 export async function GET(request: Request) {
+  const [session, role] = await Promise.all([auth(), getRole()]);
+  if (!session.userId || role !== "ADMIN") {
+    return new Response("Forbidden", { status: 403 });
+  }
   const { searchParams } = new URL(request.url);
   const query = searchParams.get("q")?.trim() ?? "";
   const statusFilter = searchParams.get("status")?.trim() ?? "";

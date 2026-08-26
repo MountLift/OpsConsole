@@ -14,7 +14,7 @@ type Creator = {
   _count: { deliverables: number };
 };
 
-export default function CreatorRow({ creator }: { creator: Creator }) {
+export default function CreatorRow({ creator, canEdit, canDelete }: { creator: Creator; canEdit: boolean; canDelete: boolean }) {
   const [editing, setEditing] = useState(false);
 
   if (editing) {
@@ -73,17 +73,17 @@ export default function CreatorRow({ creator }: { creator: Creator }) {
           {creator._count.deliverables} deliverable{creator._count.deliverables === 1 ? "" : "s"}
         </span>
 
-        <button
+        {canEdit && <button
           className="text-xs text-muted hover:text-lift font-medium transition-colors"
           onClick={() => setEditing(true)}
         >
           Edit
-        </button>
+        </button>}
 
-        <DeleteButton
+        {canDelete && <DeleteButton
           onDelete={deleteCreator.bind(null, creator.id)}
           confirmMessage={`Remove ${creator.name}? This also removes their ${creator._count.deliverables} deliverable${creator._count.deliverables === 1 ? "" : "s"} and any payouts tied to them.`}
-        />
+        />}
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { deleteCampaign } from "./actions";
 import { requireAccess } from "@/lib/require-access";
 import { canSeeMoney } from "@/lib/roles";
 import { CampaignStatus } from "@prisma/client";
+import { requireContext, brandScope, campaignScope } from "@/lib/access";
 
 function money(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
@@ -27,12 +28,13 @@ export default async function CampaignsPage({
   searchParams?: { q?: string; status?: string };
 }) {
   const role = await requireAccess("/campaigns");
+  const context = await requireContext();
   const showMoney = canSeeMoney(role);
 
   const query = searchParams?.q?.trim() ?? "";
   const statusFilter = searchParams?.status?.trim() ?? "";
 
-  const whereClause: any = {};
+  const whereClause: any = { ...campaignScope(context) };
   if (query) {
     whereClause.OR = [
       { name: { contains: query, mode: "insensitive" } },
@@ -54,19 +56,19 @@ export default async function CampaignsPage({
         deliverables: { include: { payouts: true } },
       },
     }),
-    prisma.brand.findMany({ orderBy: { name: "asc" } }),
-    prisma.campaign.count({ where: { status: "ACTIVE" } }),
-    showMoney ? prisma.campaign.aggregate({ _sum: { budget: true } }) : Promise.resolve({ _sum: { budget: null } }),
+    prisma.brand.findMany({ where: brandScope(context), orderBy: { name: "asc" } }),
+    prisma.campaign.count({ where: { ...campaignScope(context), status: "ACTIVE" } }),
+    showMoney ? prisma.campaign.aggregate({ where: campaignScope(context), _sum: { budget: true } }) : Promise.resolve({ _sum: { budget: null } }),
   ]);
 
   const hasFilter = Boolean(query || statusFilter);
 
   return (
     <div className="space-y-8">
-      <div>
+      {role === "ADMIN" && <div>
         <h1 className="text-2xl font-display font-bold tracking-tight mb-1">Campaigns</h1>
         <p className="text-sm text-muted">Every campaign, linked to its brand and deliverables.</p>
-      </div>
+      </div>}
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -99,9 +101,9 @@ export default async function CampaignsPage({
         <div className="card p-4 flex items-center justify-between">
           <div>
             <div className="text-xs text-muted font-medium mb-1">Total Campaigns</div>
-            <div className="text-2xl font-display font-semibold text-amber">{campaigns.length}</div>
+            <div className="text-2xl font-display font-semibold text-lift">{campaigns.length}</div>
           </div>
-          <div className="p-2.5 rounded-lg bg-amber/10 border border-amber/20 text-amber">
+          <div className="p-2.5 rounded-lg bg-lift/10 border border-lift/20 text-lift">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
@@ -175,10 +177,10 @@ export default async function CampaignsPage({
                   ) : (
                     <div className="text-xs text-muted font-mono">{c._count.deliverables} deliverables</div>
                   )}
-                  <DeleteButton
-                    onDelete={deleteCampaign.bind(null, c.id)}
-                    confirmMessage={`Remove ${c.name}? This also removes its ${c._count.deliverables} deliverable${c._count.deliverables === 1 ? "" : "s"} and any payouts/invoices tied to it.`}
-                  />
+                  {role === "ADMIN" && <DeleteButton
+                      onDelete={deleteCampaign.bind(null, c.id)}
+                      confirmMessage={`Remove ${c.name}? This also removes its ${c._count.deliverables} deliverable${c._count.deliverables === 1 ? "" : "s"} and any payouts/invoices tied to it.`}
+                    />}
                 </div>
               </div>
             );

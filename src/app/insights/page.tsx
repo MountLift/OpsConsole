@@ -2,11 +2,14 @@ import { prisma } from "@/lib/prisma";
 import AuditPanel from "./audit-panel";
 import { requireAccess } from "@/lib/require-access";
 import { BarChart3 } from "lucide-react";
+import { requireContext, creatorScope } from "@/lib/access";
 
 export default async function InsightsPage() {
   await requireAccess("/insights");
+  const context = await requireContext();
 
   const creators = await prisma.creator.findMany({
+    where: creatorScope(context),
     orderBy: { name: "asc" },
     select: { id: true, name: true, handle: true, platform: true },
   });

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import CreatorForm from "./creator-form";
 import CreatorRow from "./creator-row";
 import { requireAccess } from "@/lib/require-access";
+import { requireContext, creatorScope } from "@/lib/access";
 
 export default async function CreatorsPage({
   searchParams,
@@ -10,11 +11,12 @@ export default async function CreatorsPage({
   searchParams?: { q?: string; platform?: string };
 }) {
   await requireAccess("/creators");
+  const context = await requireContext();
 
   const query = searchParams?.q?.trim() ?? "";
   const platformFilter = searchParams?.platform?.trim() ?? "";
 
-  const whereClause: any = {};
+  const whereClause: any = { ...creatorScope(context) };
   if (query) {
     whereClause.OR = [
       { name: { contains: query, mode: "insensitive" } },
@@ -32,8 +34,8 @@ export default async function CreatorsPage({
       orderBy: { createdAt: "desc" },
       include: { _count: { select: { deliverables: true } } },
     }),
-    prisma.creator.count(),
-    prisma.deliverable.count(),
+    prisma.creator.count({ where: creatorScope(context) }),
+    prisma.deliverable.count({ where: { creator: creatorScope(context) } }),
   ]);
 
   const igCount = creators.filter(
@@ -44,10 +46,10 @@ export default async function CreatorsPage({
 
   return (
     <div className="space-y-8">
-      <div>
+      {context.role === "ADMIN" && <div>
         <h1 className="text-2xl font-display font-bold tracking-tight mb-1">Creators</h1>
         <p className="text-sm text-muted">Manage your creator roster, handles, platforms, and deliverables.</p>
-      </div>
+      </div>}
 
       {/* Roster Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -76,9 +78,9 @@ export default async function CreatorsPage({
         <div className="card p-4 flex items-center justify-between">
           <div>
             <div className="text-xs text-muted font-medium mb-1">Total Deliverables</div>
-            <div className="text-2xl font-display font-semibold text-amber">{totalDeliverables}</div>
+            <div className="text-2xl font-display font-semibold text-lift">{totalDeliverables}</div>
           </div>
-          <div className="p-2.5 rounded-lg bg-amber/10 border border-amber/20 text-amber">
+          <div className="p-2.5 rounded-lg bg-lift/10 border border-lift/20 text-lift">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
@@ -117,7 +119,7 @@ export default async function CreatorsPage({
             {hasFilter ? "No creators match your filter." : "No creators yet — add one above."}
           </div>
         ) : (
-          creators.map((c) => <CreatorRow key={c.id} creator={c} />)
+          creators.map((c) => <CreatorRow key={c.id} creator={c} canEdit={context.role === "ADMIN"} canDelete={context.role === "ADMIN"} />)
         )}
       </div>
     </div>

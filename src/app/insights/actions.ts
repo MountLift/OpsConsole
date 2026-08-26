@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { requireContext, creatorScope } from "@/lib/access";
 
 export async function extractInsightMetrics(rawData: any) {
   if (!rawData || typeof rawData !== "object") {
@@ -57,8 +58,10 @@ export async function saveInsightSnapshot(handle: string, rawData: any) {
 
   const normalizedHandle = handle.trim().replace(/^@/, "").toLowerCase();
 
+  const context = await requireContext();
   const creators = await prisma.creator.findMany({
     where: {
+      ...creatorScope(context),
       handle: { not: null },
     },
   });

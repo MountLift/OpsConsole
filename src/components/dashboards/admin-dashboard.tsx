@@ -1,345 +1,44 @@
 import Link from "next/link";
-import {
-  TrendingUp,
-  Sparkles,
-  CircleDollarSign,
-  AlertTriangle,
-  ArrowUpRight,
-  Plus,
-  ArrowRight,
-  FileSpreadsheet,
-  BarChart3,
-  Layers,
-} from "lucide-react";
+import { AlertTriangle, ArrowRight, FileSpreadsheet, Plus } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 
-function money(amount: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
+function money(value: number) { return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value); }
+function plural(count: number, noun: string) { return `${count} ${noun}${count === 1 ? "" : "s"}`; }
 
 export default async function AdminDashboard() {
-  const [
-    activeCampaigns,
-    allCampaignsCount,
-    brandCount,
-    creatorCount,
-    pendingPayouts,
-    outstandingInvoices,
-    recentPendingPayouts,
-    recentCreators,
-  ] = await Promise.all([
-    prisma.campaign.findMany({
-      where: { status: "ACTIVE" },
-      include: { brand: true, _count: { select: { deliverables: true } } },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.campaign.count(),
-    prisma.brand.count(),
-    prisma.creator.count(),
-    prisma.payout.aggregate({
-      _sum: { amount: true },
-      _count: true,
-      where: { status: "PENDING" },
-    }),
-    prisma.invoice.aggregate({
-      _sum: { amount: true },
-      _count: true,
-      where: { status: { in: ["SENT", "OVERDUE"] } },
-    }),
-    prisma.payout.findMany({
-      where: { status: "PENDING" },
-      take: 4,
-      orderBy: { createdAt: "desc" },
-      include: { deliverable: { include: { creator: true, campaign: true } } },
-    }),
-    prisma.creator.findMany({
-      take: 4,
-      orderBy: { createdAt: "desc" },
-      include: { _count: { select: { deliverables: true } } },
-    }),
+  const [active, campaignCount, brandCount, creatorCount, pending, invoices, payoutQueue, recentCreators] = await Promise.all([
+    prisma.campaign.findMany({ where: { status: "ACTIVE" }, include: { brand: true, _count: { select: { deliverables: true } } }, orderBy: { createdAt: "desc" } }),
+    prisma.campaign.count(), prisma.brand.count(), prisma.creator.count(),
+    prisma.payout.aggregate({ _sum: { amount: true }, _count: true, where: { status: "PENDING" } }),
+    prisma.invoice.aggregate({ _sum: { amount: true }, _count: true, where: { status: { in: ["SENT", "OVERDUE"] } } }),
+    prisma.payout.findMany({ where: { status: "PENDING" }, take: 4, orderBy: { createdAt: "desc" }, include: { deliverable: { include: { creator: true, campaign: true } } } }),
+    prisma.creator.findMany({ take: 4, orderBy: { createdAt: "desc" }, include: { _count: { select: { deliverables: true } } } }),
   ]);
+  const payoutTotal = Number(pending._sum.amount ?? 0);
+  const invoiceTotal = Number(invoices._sum.amount ?? 0);
+  const activeBudget = active.reduce((sum, campaign) => sum + Number(campaign.budget), 0);
+  const attention = pending._count + invoices._count;
 
-  const pendingPayoutAmount = Number(pendingPayouts._sum.amount ?? 0);
-  const outstandingInvoiceAmount = Number(outstandingInvoices._sum.amount ?? 0);
-  const totalActiveBudget = activeCampaigns.reduce((sum, c) => sum + Number(c.budget), 0);
+  return <div className="space-y-7">
+    <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div><p className="eyebrow">Operations</p><h1 className="text-3xl font-display font-bold tracking-tight">Today&apos;s desk</h1><p className="text-sm text-muted mt-1">{attention ? `${plural(attention, "financial item")} need attention.` : "Nothing awaiting a finance decision."}</p></div>
+      <div className="flex items-center gap-2 flex-wrap"><Link href="/campaigns" className="quick-link"><Plus size={14} />Campaign</Link><Link href="/creators" className="quick-link"><Plus size={14} />Creator</Link><Link href="/api/export/finance" className="quick-link" download><FileSpreadsheet size={14} />Export</Link></div>
+    </header>
 
-  const stats = [
-    {
-      label: "Active Campaigns",
-      value: activeCampaigns.length,
-      detail: `${allCampaignsCount} total campaigns across ${brandCount} brands`,
-      href: "/campaigns",
-      color: "text-lift",
-      bgColor: "bg-lift/10",
-      borderColor: "border-lift/20",
-      icon: TrendingUp,
-    },
-    {
-      label: "Creators Roster",
-      value: creatorCount,
-      detail: "Active talent across platforms",
-      href: "/creators",
-      color: "text-paper",
-      bgColor: "bg-paper/10",
-      borderColor: "border-paper/20",
-      icon: Sparkles,
-    },
-    {
-      label: "Pending Payouts",
-      value: money(pendingPayoutAmount),
-      detail: `${pendingPayouts._count} creator payouts to clear`,
-      href: "/finance?status=outstanding",
-      color: "text-amber",
-      bgColor: "bg-amber/10",
-      borderColor: "border-amber/20",
-      icon: CircleDollarSign,
-    },
-    {
-      label: "Outstanding Invoices",
-      value: money(outstandingInvoiceAmount),
-      detail: `${outstandingInvoices._count} client invoices pending`,
-      href: "/finance?status=outstanding",
-      color: "text-lift",
-      bgColor: "bg-lift/10",
-      borderColor: "border-lift/20",
-      icon: AlertTriangle,
-    },
-  ];
+    <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <Link href="/finance?status=outstanding" className={`lg:col-span-5 rounded-2xl p-6 border transition-colors ${payoutTotal > 0 ? "bg-amber/10 border-amber/30 hover:border-amber" : "card hover:border-lift/40"}`}>
+        <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-mono uppercase tracking-wider text-muted">Creator payouts to clear</p><div className={`${payoutTotal > 0 ? "text-amber" : "text-lift"} text-4xl font-display font-semibold mt-3`}>{money(payoutTotal)}</div><p className="text-sm text-muted mt-2">{pending._count ? `${plural(pending._count, "payout")} pending` : "All creator payouts are settled"}</p></div>{payoutTotal > 0 && <AlertTriangle size={20} className="text-amber mt-1" aria-label="Action required" />}</div>
+      </Link>
+      <Link href="/finance?status=outstanding" className={`lg:col-span-3 card p-5 hover:border-lift/40 ${invoiceTotal > 0 ? "border-amber/30" : ""}`}><p className="text-xs font-mono uppercase tracking-wider text-muted">Client invoices open</p><div className={`${invoiceTotal > 0 ? "text-amber" : "text-lift"} text-2xl font-display font-semibold mt-3`}>{money(invoiceTotal)}</div><p className="text-xs text-muted mt-2">{invoices._count ? `${plural(invoices._count, "invoice")} awaiting payment` : "No receivables outstanding"}</p></Link>
+      <Link href="/campaigns" className="lg:col-span-2 card p-5 hover:border-lift/40"><p className="text-xs text-muted">Active campaigns</p><div className="text-3xl font-display font-semibold text-lift mt-3">{active.length}</div><p className="text-xs text-muted mt-2">{plural(campaignCount, "campaign")} total</p></Link>
+      <Link href="/creators" className="lg:col-span-2 card p-5 hover:border-lift/40"><p className="text-xs text-muted">Creator roster</p><div className="text-3xl font-display font-semibold text-paper mt-3">{creatorCount}</div><p className="text-xs text-muted mt-2">Across {plural(brandCount, "brand")}</p></Link>
+    </section>
 
-  const systemFlow = [
-    { step: "1", title: "Roster Creators", desc: "Add talent profiles & handles", href: "/creators" },
-    { step: "2", title: "Add Brands", desc: "Manage client brand accounts", href: "/brands" },
-    { step: "3", title: "Launch Campaigns", desc: "Set budget & assign deliverables", href: "/campaigns" },
-    { step: "4", title: "Settle Finance", desc: "Track payables & brand invoices", href: "/finance" },
-  ];
+    <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="lg:col-span-2 card overflow-hidden"><div className="px-6 pt-5 pb-4 flex items-end justify-between gap-3"><div><h2 className="text-lg font-display font-semibold">Active campaigns</h2><p className="text-xs text-muted mt-1">{money(activeBudget)} currently committed</p></div><Link href="/campaigns" className="text-xs text-lift hover:underline inline-flex gap-1 items-center">View all <ArrowRight size={12} /></Link></div><div className="divide-y divide-line">{active.length === 0 ? <div className="px-6 py-10 text-sm text-muted">No active campaigns yet.</div> : active.slice(0, 5).map(c => <Link key={c.id} href={`/campaigns/${c.id}`} className="table-row flex items-center justify-between gap-4 px-6 py-4"><div><p className="font-medium text-paper">{c.name}</p><p className="text-xs text-muted mt-1">{c.brand.name} · {plural(c._count.deliverables, "deliverable")}</p></div><div className="text-right"><p className="font-mono text-sm text-lift">{money(Number(c.budget))}</p><p className="text-[10px] text-muted uppercase tracking-wide">Budget</p></div></Link>)}</div></div>
+      <aside className="rounded-2xl border border-amber/25 bg-amber/5 overflow-hidden"><div className="px-5 py-4 border-b border-amber/15"><h2 className="font-display font-semibold text-paper">Payout queue</h2><p className="text-xs text-muted mt-1">Only items needing a decision.</p></div>{payoutQueue.length === 0 ? <p className="p-5 text-sm text-muted">No payouts waiting.</p> : <div className="divide-y divide-amber/10">{payoutQueue.map(p => <Link key={p.id} href="/finance?status=outstanding" className="block px-5 py-4 hover:bg-amber/5"><div className="flex justify-between gap-3"><div><p className="text-sm font-medium text-paper">{p.deliverable.creator.name}</p><p className="text-xs text-muted mt-1">{p.deliverable.campaign.name}</p></div><p className="font-mono text-sm text-amber">{money(Number(p.amount))}</p></div></Link>)}</div>}<div className="px-5 py-4 border-t border-amber/15"><Link href="/finance?status=outstanding" className="text-xs text-amber hover:underline">Review payouts →</Link></div></aside>
+    </section>
 
-  return (
-    <div className="space-y-8">
-      {/* Header & Quick Action Shortcuts */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-display font-bold tracking-tight">Admin Console</h1>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono bg-lift/10 text-lift border border-lift/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-lift animate-pulse" />
-              Full System Access
-            </span>
-          </div>
-          <p className="text-sm text-muted">Complete operational oversight across campaigns, roster, and finances.</p>
-        </div>
-
-        {/* Quick Action Bar */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <Link
-            href="/campaigns"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-panel border border-line text-paper hover:border-lift hover:text-lift transition-colors"
-          >
-            <Plus size={14} />
-            <span>Campaign</span>
-          </Link>
-          <Link
-            href="/creators"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-panel border border-line text-paper hover:border-lift hover:text-lift transition-colors"
-          >
-            <Plus size={14} />
-            <span>Creator</span>
-          </Link>
-          <Link
-            href="/api/export/finance"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-panel border border-line text-paper hover:border-lift hover:text-lift transition-colors"
-            download
-          >
-            <FileSpreadsheet size={14} />
-            <span>Export CSV</span>
-          </Link>
-          <Link
-            href="/insights"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-md bg-lift text-ink hover:opacity-90 transition-opacity"
-          >
-            <BarChart3 size={14} />
-            <span>IG Audit</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* System Operational Guide Banner for New Admins */}
-      <div className="card p-5 bg-gradient-to-r from-panel via-ink to-panel border-line">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Layers size={16} className="text-lift" />
-            <h2 className="text-sm font-display font-semibold text-paper">How MountLift Ops Works</h2>
-          </div>
-          <span className="text-[11px] font-mono text-muted">Operational Workflow</span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {systemFlow.map((s) => (
-            <Link
-              key={s.step}
-              href={s.href}
-              className="p-3 rounded-lg bg-ink/70 border border-line hover:border-lift/40 transition-colors group"
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="w-5 h-5 rounded-full bg-lift/10 border border-lift/20 text-lift font-mono text-xs flex items-center justify-center font-bold">
-                  {s.step}
-                </span>
-                <ArrowRight size={12} className="text-muted group-hover:text-lift group-hover:translate-x-0.5 transition-all" />
-              </div>
-              <div className="text-xs font-medium text-paper group-hover:text-lift transition-colors">{s.title}</div>
-              <div className="text-[11px] text-muted mt-0.5">{s.desc}</div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* Hero Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((s) => (
-          <Link
-            key={s.label}
-            href={s.href}
-            className="card p-5 group hover:border-lift/40 transition-all duration-200 hover:-translate-y-0.5 relative overflow-hidden"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-muted font-medium">{s.label}</span>
-              <div className={`p-2 rounded-lg ${s.bgColor} border ${s.borderColor}`}>
-                <s.icon size={18} className={s.color} />
-              </div>
-            </div>
-            <div className={`text-2xl font-display font-semibold mb-1 ${s.color}`}>{s.value}</div>
-            <div className="flex items-center justify-between text-xs text-muted">
-              <span>{s.detail}</span>
-              <ArrowUpRight size={14} className="opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-lift" />
-            </div>
-          </Link>
-        ))}
-      </div>
-
-      {/* Main 2-Column Operational Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Columns: Active Campaigns Overview */}
-        <div className="lg:col-span-2 card p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-base font-display font-semibold text-paper">Active Campaigns Overview</h2>
-                <p className="text-xs text-muted">Live brand partnerships and budget commitments</p>
-              </div>
-              <Link href="/campaigns" className="text-xs text-lift hover:underline flex items-center gap-1 font-medium">
-                <span>All campaigns ({allCampaignsCount})</span>
-                <ArrowRight size={12} />
-              </Link>
-            </div>
-
-            <div className="divide-y divide-line border-t border-line -mx-5">
-              {activeCampaigns.length === 0 ? (
-                <div className="p-6 text-center text-sm text-muted">
-                  No active campaigns.{" "}
-                  <Link href="/campaigns" className="text-lift hover:underline font-medium">
-                    Create one
-                  </Link>
-                </div>
-              ) : (
-                activeCampaigns.slice(0, 5).map((c) => (
-                  <Link
-                    key={c.id}
-                    href={`/campaigns/${c.id}`}
-                    className="table-row flex items-center justify-between px-5 py-3.5 text-sm group"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-lift animate-ping" />
-                      <div>
-                        <div className="font-medium text-paper group-hover:text-lift transition-colors">
-                          {c.name}
-                        </div>
-                        <div className="text-xs text-muted flex items-center gap-2 mt-0.5 font-mono">
-                          <span>{c.brand.name}</span>
-                          <span>•</span>
-                          <span>{c._count.deliverables} deliverables</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <div className="text-right font-mono">
-                        <div className="text-lift font-medium">{money(Number(c.budget))}</div>
-                        <div className="text-[10px] text-muted uppercase">Budget</div>
-                      </div>
-                      <span className="px-2.5 py-1 rounded-full text-xs font-mono bg-lift/10 text-lift border border-lift/20">
-                        ACTIVE
-                      </span>
-                    </div>
-                  </Link>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-line flex items-center justify-between text-xs text-muted font-mono">
-            <span>Total Active Budget: {money(totalActiveBudget)}</span>
-            <Link href="/campaigns" className="hover:text-lift">View detailed ledger →</Link>
-          </div>
-        </div>
-
-        {/* Right 1 Column: Pending Payouts & Action Items */}
-        <div className="card p-5 flex flex-col justify-between space-y-6">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-sm font-display font-semibold text-paper uppercase tracking-wide">
-                  Pending Payouts
-                </h3>
-                <p className="text-xs text-muted">Payables waiting settlement</p>
-              </div>
-              <Link href="/finance?status=outstanding" className="text-xs text-amber hover:underline font-medium">
-                Finance →
-              </Link>
-            </div>
-
-            <div className="divide-y divide-line border-t border-line -mx-5">
-              {recentPendingPayouts.length === 0 ? (
-                <div className="p-5 text-center text-xs text-muted">All creator payouts are settled!</div>
-              ) : (
-                recentPendingPayouts.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between px-5 py-3 text-xs">
-                    <div>
-                      <div className="font-medium text-paper">{p.deliverable.creator.name}</div>
-                      <div className="text-muted text-[11px] mt-0.5">{p.deliverable.campaign.name}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-amber font-medium">{money(Number(p.amount))}</span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber/10 text-amber border border-amber/20">
-                        PENDING
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Roster Additions Quick View */}
-          <div className="pt-4 border-t border-line">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-mono uppercase tracking-wider text-muted">Recent Creators</span>
-              <Link href="/creators" className="text-xs text-lift hover:underline">
-                Roster ({creatorCount})
-              </Link>
-            </div>
-            <div className="space-y-2">
-              {recentCreators.slice(0, 3).map((cr) => (
-                <div key={cr.id} className="flex items-center justify-between text-xs p-2 rounded bg-ink border border-line">
-                  <span className="font-medium text-paper">{cr.name}</span>
-                  <span className="text-muted font-mono">{cr.handle ? `@${cr.handle.replace(/^@/, "")}` : "—"}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    <section className="max-w-2xl"><div className="flex items-center justify-between mb-3"><h2 className="text-sm font-display font-semibold">Recently added creators</h2><Link href="/creators" className="text-xs text-lift hover:underline">Roster →</Link></div><div className="flex flex-wrap gap-x-6 gap-y-3">{recentCreators.map(creator => <div key={creator.id} className="text-sm"><span className="font-medium text-paper">{creator.name}</span><span className="text-muted font-mono text-xs ml-2">{creator.handle ? `@${creator.handle.replace(/^@/, "")}` : "no handle"} · {plural(creator._count.deliverables, "deliverable")}</span></div>)}</div></section>
+  </div>;
 }

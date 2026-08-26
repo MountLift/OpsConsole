@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { getRole } from "@/lib/get-role";
 import { navLinksForRole } from "@/lib/roles";
 import RoleBadge from "./role-badge";
 import ThemeToggle from "./theme-toggle";
+import SidebarNav from "./sidebar-nav";
 
 export default async function Sidebar() {
   const role = await getRole();
@@ -26,22 +26,11 @@ export default async function Sidebar() {
           </summary>
           <div className="border-t border-line px-4 py-3 space-y-3">
             <RoleBadge role={role} />
-            <nav className="space-y-1">
-              {links.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="block rounded-md px-3 py-2 text-sm text-gray-300 hover:bg-ink hover:text-lift transition-colors"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
+            <SidebarNav links={links} mobile />
             <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
               <ThemeToggle />
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <UserButton afterSignOutUrl="/sign-in" />
-                <span className="text-xs text-muted font-mono">signed in</span>
               </div>
             </div>
           </div>
@@ -79,22 +68,11 @@ export default async function Sidebar() {
             <RoleBadge role={role} />
           </div>
         </div>
-        <nav className="flex-1 px-3 py-4 space-y-1 relative">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="block px-3 py-2 rounded-md text-sm text-gray-300 hover:bg-ink hover:text-lift transition-colors"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="px-5 py-4 border-t border-line flex items-center justify-between gap-3 relative">
-          <ThemeToggle />
-          <div className="flex items-center gap-3">
+        <SidebarNav links={links} />
+        <div className="px-4 py-3 border-t border-line flex items-center justify-between gap-3 relative">
+          <ThemeToggle iconOnly />
+          <div className="flex items-center">
             <UserButton afterSignOutUrl="/sign-in" />
-            <span className="text-xs text-muted font-mono">signed in</span>
           </div>
         </div>
       </aside>

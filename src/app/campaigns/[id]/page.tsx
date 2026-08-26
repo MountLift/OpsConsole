@@ -7,6 +7,8 @@ import { deleteDeliverable } from "../actions";
 import { requireAccess } from "@/lib/require-access";
 import { canSeeMoney } from "@/lib/roles";
 import { notFound } from "next/navigation";
+import { requireContext, campaignScope, creatorScope } from "@/lib/access";
+import { createInvoice, createPayout } from "@/app/finance/actions";
 
 function money(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
@@ -14,18 +16,19 @@ function money(n: number) {
 
 export default async function CampaignDetailPage({ params }: { params: { id: string } }) {
   const role = await requireAccess("/campaigns");
+  const context = await requireContext();
   const showMoney = canSeeMoney(role);
 
   const [campaign, creators] = await Promise.all([
     prisma.campaign.findUnique({
-      where: { id: params.id },
+      where: { id: params.id, ...campaignScope(context) },
       include: {
         brand: true,
         deliverables: { include: { creator: true, payouts: true }, orderBy: { createdAt: "desc" } },
         invoices: true,
       },
     }),
-    prisma.creator.findMany({ orderBy: { name: "asc" } }),
+    prisma.creator.findMany({ where: creatorScope(context), orderBy: { name: "asc" } }),
   ]);
 
   if (!campaign) notFound();
@@ -81,7 +84,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
               </div>
               <div>
                 <div className="text-xs text-muted font-medium mb-0.5">Payouts Committed</div>
-                <div className="text-xl font-display font-semibold text-amber">{money(totalPayouts)}</div>
+                <div className="text-xl font-display font-semibold text-lift">{money(totalPayouts)}</div>
               </div>
               <div>
                 <div className="text-xs text-muted font-medium mb-0.5">Profit</div>
@@ -101,11 +104,22 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
         </div>
       </div>
 
+      {role === "ADMIN" && <section className="glass-card p-5 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div><p className="eyebrow">Campaign finance</p><h2 className="text-lg font-display font-semibold">Invoice the brand</h2></div>
+          <span className="text-xs text-muted">{campaign.invoices.length} invoice{campaign.invoices.length === 1 ? "" : "s"} · {money(totalInvoiced)} invoiced</span>
+        </div>
+        <form action={createInvoice.bind(null, campaign.brandId, campaign.id)} className="flex flex-col sm:flex-row gap-3">
+          <label className="flex-1"><span className="sr-only">Invoice amount</span><input className="input" name="amount" type="number" min="0" step="0.01" required defaultValue={Number(campaign.budget)} placeholder="Invoice amount" /></label>
+          <button className="btn px-5">Create invoice</button>
+        </form>
+      </section>}
+
       {/* Add Deliverable */}
-      <div>
+      {role === "ADMIN" && <div>
         <h2 className="text-xs font-mono uppercase tracking-wider text-muted mb-3">Add Deliverable</h2>
         <DeliverableForm campaignId={campaign.id} creators={creators} showRate={showMoney} />
-      </div>
+      </div>}
 
       {/* Deliverables List */}
       <div>
@@ -115,7 +129,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
             <div className="p-6 text-center text-sm text-muted">No deliverables added yet — create one above.</div>
           ) : (
             campaign.deliverables.map((d) => (
-              <div key={d.id} className="table-row flex items-center justify-between px-5 py-4 text-sm group">
+              <div key={d.id} className="table-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4 text-sm group">
                 <div>
                   <div className="font-medium text-paper flex items-center gap-2">
                     <span>{d.creator.name}</span>
@@ -133,17 +147,24 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-6">
+                <div className="flex flex-wrap items-center gap-3 sm:gap-6">
                   {showMoney && (
                     <div className="text-right">
                       <div className="text-lift font-mono font-medium">{money(Number(d.agreedRate))}</div>
                       <div className="text-[10px] text-muted font-mono uppercase">Agreed Rate</div>
                     </div>
                   )}
-                  <DeleteButton
+                  {role === "ADMIN" && d.payouts.length === 0 && (
+                    <form action={createPayout.bind(null, d.id, campaign.id)} className="flex items-center gap-2">
+                      <input className="input w-28 py-1.5 text-xs" name="amount" type="number" min="0" step="0.01" defaultValue={Number(d.agreedRate)} aria-label={`Payout amount for ${d.creator.name}`} />
+                      <button className="btn btn-small whitespace-nowrap">Create payout</button>
+                    </form>
+                  )}
+                  {role === "ADMIN" && d.payouts.length > 0 && <Link href="/finance" className="text-xs text-lift hover:underline">Edit payout →</Link>}
+                  {role === "ADMIN" && <DeleteButton
                     onDelete={deleteDeliverable.bind(null, d.id, campaign.id)}
                     confirmMessage={`Remove this ${d.type.toLowerCase()} from ${d.creator.name}? This also removes any payout logged against it.`}
-                  />
+                  />}
                 </div>
               </div>
             ))

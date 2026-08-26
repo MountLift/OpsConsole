@@ -9,7 +9,7 @@ export const ROLE_LABELS: Record<Role, string> = {
 // Routes each role is allowed to visit. "/" (dashboard) is allowed for everyone —
 // the dashboard itself renders differently per role instead of being gated.
 const ROLE_ROUTES: Record<Role, string[]> = {
-  ADMIN: ["/", "/creators", "/brands", "/campaigns", "/finance", "/insights"],
+  ADMIN: ["/", "/creators", "/brands", "/campaigns", "/finance", "/insights", "/team"],
   ACCOUNT_MANAGER: ["/", "/creators", "/brands", "/campaigns"],
   CREATOR_MANAGER: ["/", "/creators", "/insights"],
 };
@@ -35,6 +35,7 @@ export function navLinksForRole(role: Role | null) {
     { href: "/campaigns", label: "Campaigns" },
     { href: "/finance", label: "Finance" },
     { href: "/insights", label: "Insights" },
+    { href: "/team", label: "Team & Access" },
   ];
   return all.filter((link) => canAccess(role, link.href));
 }

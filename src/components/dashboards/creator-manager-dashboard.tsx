@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { Sparkles, Plus, ArrowRight, BarChart3, Users } from "lucide-react";
+import { ArrowRight, BarChart3 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { requireContext, creatorScope } from "@/lib/access";
 
 export default async function CreatorManagerDashboard() {
-  const creators = await prisma.creator.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { _count: { select: { deliverables: true } } },
-  });
+  const context = await requireContext();
+  const [creators, updates] = await Promise.all([
+    prisma.creator.findMany({ where: creatorScope(context), orderBy: { createdAt: "desc" }, include: { _count: { select: { deliverables: true } } } }),
+    prisma.managerUpdate.findMany({ where: { targetClerkUserId: context.clerkUserId }, orderBy: { createdAt: "desc" }, take: 5 }),
+  ]);
 
   const igReady = creators.filter(
     (c) => c.handle && (!c.platform || c.platform.toLowerCase().includes("insta"))
@@ -18,11 +20,9 @@ export default async function CreatorManagerDashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Sparkles size={20} className="text-lift" />
-            <h1 className="text-2xl font-display font-bold tracking-tight">Creator Roster</h1>
-          </div>
-          <p className="text-sm text-muted">Talent roster management, platform profiles, and engagement performance.</p>
+          <p className="eyebrow">My assignments</p>
+          <h1 className="text-3xl font-display font-bold tracking-tight">Creator roster</h1>
+          <p className="text-sm text-muted mt-1">{needsFollowUp ? `${needsFollowUp} profile${needsFollowUp === 1 ? "" : "s"} need setup before outreach.` : "Every assigned profile has a basic setup."}</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -30,8 +30,7 @@ export default async function CreatorManagerDashboard() {
             href="/creators"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-panel border border-line text-paper hover:border-lift hover:text-lift transition-colors"
           >
-            <Plus size={14} />
-            <span>Add Creator</span>
+            <span>My creators</span>
           </Link>
           <Link
             href="/insights"
@@ -43,38 +42,28 @@ export default async function CreatorManagerDashboard() {
         </div>
       </div>
 
-      {/* Roster Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="card p-4 flex items-center justify-between">
+        <div className="card p-5 sm:col-span-2">
           <div>
             <div className="text-xs text-muted font-medium mb-1">Total Creator Roster</div>
-            <div className="text-2xl font-display font-semibold text-paper">{creators.length}</div>
-            <div className="text-[11px] text-muted mt-1">Across all platforms</div>
-          </div>
-          <div className="p-2.5 rounded-lg bg-paper/10 border border-paper/20 text-paper">
-            <Users size={18} />
+            <div className="text-4xl font-display font-semibold text-paper">{creators.length}</div>
+            <div className="text-[11px] text-muted mt-1">Profiles assigned to you</div>
           </div>
         </div>
 
-        <div className="card p-4 flex items-center justify-between">
+        <div className="card p-5">
           <div>
             <div className="text-xs text-muted font-medium mb-1">Instagram Ready</div>
             <div className="text-2xl font-display font-semibold text-lift">{igReady}</div>
             <div className="text-[11px] text-muted mt-1">Handles ready to audit</div>
           </div>
-          <div className="p-2.5 rounded-lg bg-lift/10 border border-lift/20 text-lift">
-            <Sparkles size={18} />
-          </div>
         </div>
 
-        <div className="card p-4 flex items-center justify-between">
+        <div className={`p-5 rounded-2xl border ${needsFollowUp > 0 ? "border-amber/30 bg-amber/10" : "card"}`}>
           <div>
             <div className="text-xs text-muted font-medium mb-1">Needs Profile Setup</div>
-            <div className="text-2xl font-display font-semibold text-amber">{needsFollowUp}</div>
+            <div className={`text-2xl font-display font-semibold ${needsFollowUp > 0 ? "text-amber" : "text-lift"}`}>{needsFollowUp}</div>
             <div className="text-[11px] text-muted mt-1">Missing handle or platform</div>
-          </div>
-          <div className="p-2.5 rounded-lg bg-amber/10 border border-amber/20 text-amber">
-            <Plus size={18} />
           </div>
         </div>
       </div>
@@ -98,12 +87,28 @@ export default async function CreatorManagerDashboard() {
         <ArrowRight size={16} className="text-lift group-hover:translate-x-1 transition-transform" />
       </Link>
 
+      <div className="card overflow-hidden">
+        <div className="px-5 py-3 border-b border-line flex items-center justify-between">
+          <h2 className="text-sm font-display font-semibold text-paper">Updates from Admin</h2>
+          <span className="text-[10px] font-mono text-muted">PRIVATE</span>
+        </div>
+        {updates.length === 0 ? <p className="p-5 text-sm text-muted">No updates have been assigned to you yet.</p> : (
+          <div className="divide-y divide-line">{updates.map((update) => (
+            <article key={update.id} className="px-5 py-4">
+              <h3 className="text-sm font-medium text-paper">{update.title}</h3>
+              <p className="text-sm text-muted mt-1 whitespace-pre-wrap">{update.body}</p>
+              <time className="text-[10px] font-mono text-muted mt-2 block">{update.createdAt.toLocaleDateString()}</time>
+            </article>
+          ))}</div>
+        )}
+      </div>
+
       {/* Creator Roster Grid */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-display font-semibold text-paper">Roster Profiles</h2>
+          <h2 className="text-base font-display font-semibold text-paper">Roster profiles</h2>
           <Link href="/creators" className="text-xs text-lift hover:underline flex items-center gap-1 font-medium">
-            <span>Manage all creators ({creators.length})</span>
+            <span>All {creators.length} creators</span>
             <ArrowRight size={12} />
           </Link>
         </div>
@@ -111,10 +116,7 @@ export default async function CreatorManagerDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {creators.length === 0 ? (
             <div className="col-span-full card p-6 text-center text-sm text-muted">
-              No creators on your roster yet.{" "}
-              <Link href="/creators" className="text-lift hover:underline font-medium">
-                Add your first creator
-              </Link>
+              No creators have been assigned to you yet.
             </div>
           ) : (
             creators.map((c) => (
