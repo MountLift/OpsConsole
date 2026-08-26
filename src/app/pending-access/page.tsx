@@ -8,7 +8,7 @@ export default function PendingAccessPage() {
         <h1 className="text-base font-medium mb-2">Access pending</h1>
         <p className="text-sm text-muted mb-6">
           Your account is signed in, but no role has been assigned yet. Ask an admin to set your
-          role in the Clerk dashboard under your user's public metadata.
+          role in MountLift&apos;s Team & Access page.
         </p>
         <div className="flex justify-center">
           <UserButton afterSignOutUrl="/sign-in" />

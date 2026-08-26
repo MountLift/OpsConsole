@@ -6,7 +6,7 @@ import { requireContext, creatorScope } from "@/lib/access";
 export default async function CreatorManagerDashboard() {
   const context = await requireContext();
   const [creators, updates] = await Promise.all([
-    prisma.creator.findMany({ where: creatorScope(context), orderBy: { createdAt: "desc" }, include: { _count: { select: { deliverables: true } } } }),
+    prisma.creator.findMany({ where: creatorScope(context), orderBy: { createdAt: "desc" }, include: { _count: { select: { deliverables: true } }, insights: { take: 1, orderBy: { createdAt: "desc" }, select: { engagementRate: true, createdAt: true } } } }),
     prisma.managerUpdate.findMany({ where: { targetClerkUserId: context.clerkUserId }, orderBy: { createdAt: "desc" }, take: 5 }),
   ]);
 
@@ -119,8 +119,9 @@ export default async function CreatorManagerDashboard() {
               No creators have been assigned to you yet.
             </div>
           ) : (
-            creators.map((c) => (
-              <div key={c.id} className="card p-4 flex flex-col justify-between hover:border-line transition-colors">
+            creators.map((c) => {
+              const latestInsight = c.insights[0];
+              return <Link key={c.id} href={`/creators/${c.id}`} className="card p-4 flex flex-col justify-between hover:border-lift/40 transition-colors">
                 <div>
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-9 h-9 rounded-full bg-lift/10 border border-lift/20 text-lift flex items-center justify-center font-display font-bold text-xs uppercase">
@@ -137,12 +138,10 @@ export default async function CreatorManagerDashboard() {
 
                 <div className="pt-3 border-t border-line flex items-center justify-between text-xs font-mono">
                   <span className="text-muted">{c.platform || "Unassigned"}</span>
-                  <span className="px-2 py-0.5 rounded text-[10px] bg-panel border border-line text-paper">
-                    {c._count.deliverables} posts
-                  </span>
+                  <span className={latestInsight ? "text-lift" : "text-muted"}>{latestInsight?.engagementRate != null ? `${latestInsight.engagementRate.toFixed(1)}% ER` : latestInsight ? "Audit saved" : "No audit yet"}</span>
                 </div>
-              </div>
-            ))
+              </Link>;
+            })
           )}
         </div>
       </div>

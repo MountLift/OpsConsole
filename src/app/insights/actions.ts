@@ -72,11 +72,24 @@ export async function saveInsightSnapshot(handle: string, rawData: any) {
 
   if (!creator) return null;
 
+  return createInsightSnapshot(creator.id, rawData);
+}
+
+export async function saveInsightSnapshotForCreator(creatorId: string, rawData: any) {
+  if (!creatorId || !rawData) return null;
+  const context = await requireContext();
+  const creator = await prisma.creator.findFirst({ where: { id: creatorId, ...creatorScope(context) }, select: { id: true } });
+  if (!creator) return null;
+  return createInsightSnapshot(creator.id, rawData);
+}
+
+async function createInsightSnapshot(creatorId: string, rawData: any) {
+
   const metrics = await extractInsightMetrics(rawData);
 
   const insight = await prisma.creatorInsight.create({
     data: {
-      creatorId: creator.id,
+      creatorId,
       avgViews: metrics.avgViews,
       medianViews: metrics.medianViews,
       avgLikes: metrics.avgLikes,
@@ -90,7 +103,7 @@ export async function saveInsightSnapshot(handle: string, rawData: any) {
   });
 
   revalidatePath("/insights");
-  revalidatePath(`/creators/${creator.id}`);
+  revalidatePath(`/creators/${creatorId}`);
   revalidatePath("/creators");
 
   return insight;

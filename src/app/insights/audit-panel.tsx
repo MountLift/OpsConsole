@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Search, Play, FileSpreadsheet, Loader2, Sparkles, AlertCircle, ChevronDown, CheckCircle2 } from "lucide-react";
-import { saveInsightSnapshot, extractInsightMetrics } from "./actions";
+import { saveInsightSnapshot, saveInsightSnapshotForCreator, extractInsightMetrics } from "./actions";
 
 type Creator = { id: string; name: string; handle: string | null; platform: string | null };
 type AuditResult = Record<string, any>;
@@ -93,7 +93,19 @@ export default function AuditPanel({ creators }: { creators: Creator[] }) {
         return;
       }
 
-      const resObj: Record<string, AuditResult> = data.results ?? data;
+      const apiResults = data.results ?? data;
+      // Some scraper deployments return an object keyed by array position ("0",
+      // "1") instead of Instagram handles. Pair those results to the requested
+      // handles, so a roster audit always saves to the intended creator profile.
+      const rawEntries: [string, AuditResult][] = Array.isArray(apiResults)
+        ? apiResults.map((result, index) => [String(index), result])
+        : Object.entries(apiResults);
+      const resObj: Record<string, AuditResult> = Object.fromEntries(
+        rawEntries.map(([returnedKey, rawData], index) => {
+          const isPositionKey = /^\d+$/.test(returnedKey);
+          return [isPositionKey ? handles[index] ?? returnedKey : returnedKey.replace(/^@/, ""), rawData];
+        })
+      );
       setResults(resObj);
 
       // Extract metrics and auto-save snapshots for roster matches
@@ -105,7 +117,12 @@ export default function AuditPanel({ creators }: { creators: Creator[] }) {
           const metrics = await extractInsightMetrics(rawData);
           metricsMap[handle] = metrics;
 
-          const savedInsight = await saveInsightSnapshot(handle, rawData);
+          const rosterCreator = igCreators.find(
+            (creator) => creator.handle?.trim().replace(/^@/, "").toLowerCase() === handle.toLowerCase()
+          );
+          const savedInsight = rosterCreator
+            ? await saveInsightSnapshotForCreator(rosterCreator.id, rawData)
+            : await saveInsightSnapshot(handle, rawData);
           if (savedInsight) {
             saved.push(handle.toLowerCase());
           }
