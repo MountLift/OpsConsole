@@ -11,7 +11,7 @@ export const ROLE_LABELS: Record<Role, string> = {
 const ROLE_ROUTES: Record<Role, string[]> = {
   ADMIN: ["/", "/creators", "/brands", "/campaigns", "/finance", "/insights", "/team"],
   ACCOUNT_MANAGER: ["/", "/creators", "/brands", "/campaigns"],
-  CREATOR_MANAGER: ["/", "/creators", "/insights"],
+  CREATOR_MANAGER: ["/", "/creators", "/campaigns", "/insights"],
 };
 
 export function canAccess(role: Role | null, pathname: string): boolean {

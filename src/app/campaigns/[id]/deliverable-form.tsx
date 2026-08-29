@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { addDeliverable } from "../actions";
 
 const TYPES = ["POST", "REEL", "STORY", "VIDEO", "LIVESTREAM", "OTHER"];
@@ -16,18 +16,22 @@ export default function DeliverableForm({
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <form
       ref={formRef}
       action={(formData) => {
         startTransition(async () => {
-          await addDeliverable(campaignId, formData);
-          formRef.current?.reset();
+          setError(null);
+          const result = await addDeliverable(campaignId, formData);
+          if (result?.error) setError(result.error);
+          else formRef.current?.reset();
         });
       }}
-      className={`card p-4 grid ${showRate ? "grid-cols-4" : "grid-cols-3"} gap-3 mb-6`}
+      className="card p-4 mb-6"
     >
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${showRate ? "xl:grid-cols-4" : "xl:grid-cols-3"} gap-3`}>
       <select className="input" name="creatorId" required defaultValue="">
         <option value="" disabled>
           Select creator
@@ -48,9 +52,15 @@ export default function DeliverableForm({
       {showRate && (
         <input className="input" name="agreedRate" placeholder="Agreed rate" type="number" min="0" />
       )}
+      <label className="space-y-1">
+        <span className="text-xs text-muted">Due date</span>
+        <input className="input" name="dueDate" type="date" />
+      </label>
       <button className="btn" disabled={isPending}>
         {isPending ? "Adding…" : "Add deliverable"}
       </button>
+      </div>
+      {error && <p className="mt-3 text-xs text-amber">{error}</p>}
     </form>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { createCampaign } from "./actions";
 
 export default function CampaignForm({
@@ -12,14 +12,17 @@ export default function CampaignForm({
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <form
       ref={formRef}
       action={(formData) => {
         startTransition(async () => {
-          await createCampaign(formData);
-          formRef.current?.reset();
+          setError(null);
+          const result = await createCampaign(formData);
+          if (result?.error) setError(result.error);
+          else formRef.current?.reset();
         });
       }}
       className="card p-4 mb-6"
@@ -27,7 +30,7 @@ export default function CampaignForm({
       <div className="text-xs text-muted mb-3">
         Quick setup: choose a name and brand first. Budget is optional and can be adjusted later.
       </div>
-      <div className={`grid grid-cols-1 md:grid-cols-2 ${showBudget ? "xl:grid-cols-3" : "xl:grid-cols-2"} gap-3`}>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         <label className="space-y-1">
           <span className="text-xs text-muted">Campaign name *</span>
           <input className="input" name="name" placeholder="e.g. Summer Launch 2026" required />
@@ -51,7 +54,16 @@ export default function CampaignForm({
             <input className="input" name="budget" placeholder="e.g. 50000" type="number" min="0" />
           </label>
         )}
+        <label className="space-y-1">
+          <span className="text-xs text-muted">Campaign start</span>
+          <input className="input" name="startDate" type="date" />
+        </label>
+        <label className="space-y-1">
+          <span className="text-xs text-muted">Brand due date</span>
+          <input className="input" name="endDate" type="date" />
+        </label>
       </div>
+      {error && <p className="mt-3 text-xs text-amber">{error}</p>}
       <div className="mt-4">
         <button className="btn" disabled={isPending}>
           {isPending ? "Creating…" : "Create campaign"}

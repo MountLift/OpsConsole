@@ -4,27 +4,56 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { requireAdmin, requireContext, campaignScope } from "@/lib/access";
 
+function dateFromForm(value: FormDataEntryValue | null) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return null;
+  const date = new Date(`${raw}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 export async function createCampaign(formData: FormData) {
   await requireAdmin();
   const name = String(formData.get("name") ?? "").trim();
   const brandId = String(formData.get("brandId") ?? "");
   if (!name || !brandId) return;
 
+  const startDate = dateFromForm(formData.get("startDate"));
+  const endDate = dateFromForm(formData.get("endDate"));
+  if (startDate && endDate && endDate < startDate) return { error: "The campaign due date must be after its start date." };
+
   await prisma.campaign.create({
     data: {
       name,
       brandId,
       budget: Number(formData.get("budget") ?? 0),
+      startDate,
+      endDate,
     },
   });
 
   revalidatePath("/campaigns");
+  return { success: true };
 }
 
 export async function addDeliverable(campaignId: string, formData: FormData) {
   await requireAdmin();
   const creatorId = String(formData.get("creatorId") ?? "");
-  if (!creatorId) return;
+  if (!creatorId) return { error: "Select a creator before assigning the deliverable." };
+  const dueDate = dateFromForm(formData.get("dueDate"));
+  const campaign = await prisma.campaign.findUnique({ where: { id: campaignId }, select: { startDate: true, endDate: true } });
+  if (!campaign) return { error: "Campaign not found." };
+  if (dueDate && campaign.startDate && dueDate < campaign.startDate) return { error: "This deadline is before the campaign start date." };
+  if (dueDate && campaign.endDate && dueDate > campaign.endDate) return { error: "This deadline is after the campaign due date." };
+
+  if (dueDate) {
+    const followingDay = new Date(dueDate);
+    followingDay.setDate(followingDay.getDate() + 1);
+    const conflict = await prisma.deliverable.findFirst({
+      where: { creatorId, dueDate: { gte: dueDate, lt: followingDay }, status: { notIn: ["APPROVED", "LIVE"] } },
+      select: { type: true, campaign: { select: { name: true } } },
+    });
+    if (conflict) return { error: `This creator already has a ${conflict.type.toLowerCase()} due that day for ${conflict.campaign.name}. Choose another date.` };
+  }
 
   await prisma.deliverable.create({
     data: {
@@ -32,10 +61,13 @@ export async function addDeliverable(campaignId: string, formData: FormData) {
       creatorId,
       type: String(formData.get("type") ?? "POST") as any,
       agreedRate: Number(formData.get("agreedRate") ?? 0),
+      dueDate,
     },
   });
 
   revalidatePath(`/campaigns/${campaignId}`);
+  revalidatePath("/");
+  return { success: true };
 }
 
 export async function updateCampaign(id: string, formData: FormData) {

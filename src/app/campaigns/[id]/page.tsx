@@ -9,9 +9,18 @@ import { canSeeMoney } from "@/lib/roles";
 import { notFound } from "next/navigation";
 import { requireContext, campaignScope, creatorScope } from "@/lib/access";
 import { createInvoice, createPayout } from "@/app/finance/actions";
+import { CalendarPlus } from "lucide-react";
 
 function money(n: number) {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+}
+
+function googleCalendarUrl(title: string, dueDate: Date, details: string) {
+  const format = (date: Date) => `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
+  const endDate = new Date(dueDate);
+  endDate.setDate(endDate.getDate() + 1);
+  const params = new URLSearchParams({ action: "TEMPLATE", text: title, dates: `${format(dueDate)}/${format(endDate)}`, details });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
 export default async function CampaignDetailPage({ params }: { params: { id: string } }) {
@@ -24,7 +33,11 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
       where: { id: params.id, ...campaignScope(context) },
       include: {
         brand: true,
-        deliverables: { include: { creator: true, payouts: true }, orderBy: { createdAt: "desc" } },
+        deliverables: {
+          where: context.role === "CREATOR_MANAGER" ? { creator: creatorScope(context) } : undefined,
+          include: { creator: true, payouts: true },
+          orderBy: { createdAt: "desc" },
+        },
         invoices: true,
       },
     }),
@@ -58,7 +71,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
               <div className="text-xs font-mono text-lift uppercase tracking-wider mb-1">Brand: {campaign.brand.name}</div>
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-display font-bold tracking-tight text-paper">{campaign.name}</h1>
-                <CampaignHeader
+                {role === "ADMIN" && <CampaignHeader
                   campaign={{
                     id: campaign.id,
                     name: campaign.name,
@@ -68,13 +81,18 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
                   }}
                   showBudget={showMoney}
                   inlineEditOnly
-                />
+                />}
               </div>
             </div>
             <span className="px-3 py-1 rounded-full text-xs font-mono bg-lift/10 text-lift border border-lift/20 w-fit">
               Status: {campaign.status}
             </span>
           </div>
+
+          {(campaign.startDate || campaign.endDate) && <div className="flex flex-wrap gap-x-5 gap-y-1 mt-4 pt-4 border-t border-line text-xs font-mono text-muted">
+            {campaign.startDate && <span>Starts: <strong className="text-paper">{campaign.startDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</strong></span>}
+            {campaign.endDate && <span>Brand due: <strong className="text-lift">{campaign.endDate.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</strong></span>}
+          </div>}
 
           {showMoney && (
             <div className="grid grid-cols-3 gap-4 mt-6 pt-4 border-t border-line">
@@ -161,6 +179,14 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
                     </form>
                   )}
                   {role === "ADMIN" && d.payouts.length > 0 && <Link href="/finance" className="text-xs text-lift hover:underline">Edit payout →</Link>}
+                  {d.dueDate && <a
+                    href={googleCalendarUrl(`${d.type.toLowerCase()} due: ${d.creator.name}`, d.dueDate, `${campaign.name} · ${campaign.brand.name}`)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-lift hover:underline"
+                  >
+                    <CalendarPlus size={13} /> Remind me
+                  </a>}
                   {role === "ADMIN" && <DeleteButton
                     onDelete={deleteDeliverable.bind(null, d.id, campaign.id)}
                     confirmMessage={`Remove this ${d.type.toLowerCase()} from ${d.creator.name}? This also removes any payout logged against it.`}

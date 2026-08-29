@@ -56,7 +56,7 @@ export default async function CampaignsPage({
         deliverables: { include: { payouts: true } },
       },
     }),
-    prisma.brand.findMany({ where: brandScope(context), orderBy: { name: "asc" } }),
+    context.role === "ADMIN" ? prisma.brand.findMany({ where: brandScope(context), orderBy: { name: "asc" } }) : Promise.resolve([]),
     prisma.campaign.count({ where: { ...campaignScope(context), status: "ACTIVE" } }),
     showMoney ? prisma.campaign.aggregate({ where: campaignScope(context), _sum: { budget: true } }) : Promise.resolve({ _sum: { budget: null } }),
   ]);
@@ -68,6 +68,11 @@ export default async function CampaignsPage({
       {role === "ADMIN" && <div>
         <h1 className="text-2xl font-display font-bold tracking-tight mb-1">Campaigns</h1>
         <p className="text-sm text-muted">Every campaign, linked to its brand and deliverables.</p>
+      </div>}
+      {role === "CREATOR_MANAGER" && <div>
+        <p className="eyebrow">Roster work</p>
+        <h1 className="text-2xl font-display font-bold tracking-tight mb-1">Assigned campaigns</h1>
+        <p className="text-sm text-muted">Only campaigns with deliverables assigned to your creators are shown here.</p>
       </div>}
 
       {/* Metric Cards */}
@@ -111,13 +116,13 @@ export default async function CampaignsPage({
         </div>
       </div>
 
-      <div>
+      {role === "ADMIN" && <div>
         <h2 className="text-xs font-mono uppercase tracking-wider text-muted mb-3">Create Campaign</h2>
         <p className="text-xs text-muted mb-3">
           Beginner tip: pick a brand and campaign name first, then fill budget and details after saving.
         </p>
         <CampaignForm brands={brands} showBudget={showMoney} />
-      </div>
+      </div>}
 
       <form method="GET" className="flex items-center gap-3">
         <div className="relative flex-1">
