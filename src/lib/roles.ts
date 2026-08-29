@@ -10,7 +10,7 @@ export const ROLE_LABELS: Record<Role, string> = {
 // the dashboard itself renders differently per role instead of being gated.
 const ROLE_ROUTES: Record<Role, string[]> = {
   ADMIN: ["/", "/creators", "/brands", "/campaigns", "/finance", "/insights", "/team"],
-  ACCOUNT_MANAGER: ["/", "/creators", "/brands", "/campaigns"],
+  ACCOUNT_MANAGER: ["/", "/campaigns"],
   CREATOR_MANAGER: ["/", "/creators", "/campaigns", "/insights"],
 };
 
