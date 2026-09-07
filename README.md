@@ -58,6 +58,13 @@ See `prisma/schema.prisma` for the full schema.
 - Brands — add/remove, view campaign count per brand
 - Campaigns — create, view detail page per campaign, add deliverables tied to creators
 - Finance — two ledgers: creator payouts (payable) and brand invoices (receivable)
+- Analytics — roster audits through the configured `IG_SCRAPER_API_BASE` service, with saved snapshots per creator
+
+### Instagram analytics
+
+The current audit flow fetches public profile data through the service configured by `IG_SCRAPER_API_BASE`. It can provide public metrics such as views, likes, comments, and posting consistency when the upstream service supports them.
+
+It does not provide private Instagram Insights, follower demographics, or authenticated reach data. Those require an official Meta/Instagram Graph API integration, creator authorization, and the appropriate app permissions. The existing audit UI can remain as a public-profile fallback while that connection is added.
 
 ## Suggested next steps
 

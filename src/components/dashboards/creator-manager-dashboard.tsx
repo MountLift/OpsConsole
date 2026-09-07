@@ -5,7 +5,7 @@ import { requireContext, creatorScope } from "@/lib/access";
 
 const statusStyles = {
   PLANNED: "border-paper/15 bg-paper/10 text-paper", IN_PROGRESS: "border-lift/30 bg-lift/10 text-lift",
-  SUBMITTED: "border-sky-300/30 bg-sky-300/10 text-sky-200", APPROVED: "border-emerald-300/30 bg-emerald-300/10 text-emerald-200", LIVE: "border-violet-300/30 bg-violet-300/10 text-violet-200",
+  SUBMITTED: "border-sky-500/30 bg-sky-500/10 text-sky-700", APPROVED: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700", LIVE: "border-indigo-500/30 bg-indigo-500/10 text-indigo-700",
 } as const;
 const statusLabels = { PLANNED: "Planned", IN_PROGRESS: "In progress", SUBMITTED: "Submitted", APPROVED: "Approved", LIVE: "Live" } as const;
 
@@ -35,13 +35,13 @@ export default async function CreatorManagerDashboard() {
   const openDeliverables = deliverables.filter((d) => !["LIVE", "APPROVED"].includes(d.status)).length;
   const dueSoon = deliverables.filter((d) => d.dueDate && !["LIVE", "APPROVED"].includes(d.status) && (d.dueDate.getTime() - Date.now()) / 86_400_000 <= 7).length;
 
-  return <div className="space-y-8">
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+  return <div className="space-y-8 animate-fade-up">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-3xl border border-white/70 bg-white/42 p-6 shadow-[0_20px_60px_rgba(72,133,151,0.1)] backdrop-blur-xl">
       <div><p className="eyebrow">My assignments</p><h1 className="text-3xl font-display font-bold tracking-tight">Creator roster</h1><p className="text-sm text-muted mt-1">{openDeliverables ? `${openDeliverables} active deliverable${openDeliverables === 1 ? "" : "s"} across your roster.` : "Keep your creators and campaign work moving."}</p></div>
-      <div className="flex items-center gap-2"><Link href="/creators" className="quick-link">My creators</Link><Link href="/insights" className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-md bg-lift text-ink hover:opacity-90 transition-opacity"><BarChart3 size={14} />Run IG Audit</Link></div>
+      <div className="flex items-center gap-2"><Link href="/creators" className="quick-link">My creators</Link><Link href="/insights" className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-lift text-white hover:opacity-90 transition-opacity shadow-[0_8px_20px_rgba(22,132,154,0.22)]"><BarChart3 size={14} />Creator analytics</Link></div>
     </div>
 
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 [animation-delay:100ms] animate-fade-up">
       <Metric label="Creator roster" value={creators.length} note="Profiles assigned to you" wide />
       <Metric label="Active work" value={openDeliverables} note="Deliverables in motion" lift />
       <Metric label="Due this week" value={dueSoon} note="Needs your attention" alert={dueSoon > 0} />

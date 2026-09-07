@@ -4,11 +4,11 @@ import { MoonStar, SunMedium } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function ThemeToggle({ iconOnly = false }: { iconOnly?: boolean }) {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem("mountlift-theme");
-    const nextTheme = savedTheme === "light" ? "light" : "dark";
+    const nextTheme = savedTheme === "dark" ? "dark" : "light";
     setTheme(nextTheme);
     document.documentElement.dataset.theme = nextTheme;
   }, []);

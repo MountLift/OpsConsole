@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" data-theme="light">
         <body className="min-h-screen font-sans md:flex">
           <Sidebar />
           <main className="w-full flex-1 px-4 py-4 sm:px-6 sm:py-6 md:max-w-6xl md:px-10 md:py-8">
