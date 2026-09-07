@@ -17,7 +17,7 @@ export default async function Sidebar() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="font-display font-bold text-base tracking-tight text-lift flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-lift shadow-[0_0_10px_#D6437A]" />
+                  <span className="w-2 h-2 rounded-full bg-lift shadow-[0_0_10px_#E88C38]" />
                   MountLift
                 </div>
                 <div className="text-[10px] uppercase tracking-[0.18em] text-muted mt-0.5">Ops Console</div>
@@ -40,8 +40,8 @@ export default async function Sidebar() {
         </details>
       </header>
 
-      <aside className="hidden md:flex w-64 shrink-0 border-r border-line bg-panel/60 backdrop-blur-2xl h-screen sticky top-0 flex-col relative overflow-hidden shadow-[16px_0_45px_rgba(23,7,21,0.35)]">
-        {/* Topographic contour-line watermark — MountLift Agency brand signature */}
+      <aside className="hidden md:flex w-64 shrink-0 border-r border-line bg-panel/60 backdrop-blur-2xl h-screen sticky top-0 flex-col relative overflow-hidden shadow-[16px_0_45px_rgba(14,10,16,0.4)]">
+        {/* Topographic contour-line watermark — MountLift Sunset Orange signature */}
         <svg
           className="absolute -top-8 -right-16 w-64 h-64 opacity-[0.08] pointer-events-none"
           viewBox="0 0 200 200"
@@ -51,7 +51,7 @@ export default async function Sidebar() {
             <path
               key={r}
               d={`M 100 ${100 - r} C ${100 + r * 0.9} ${100 - r}, ${100 + r} ${100 - r * 0.3}, ${100 + r} 100 C ${100 + r} ${100 + r * 0.5}, ${100 + r * 0.4} ${100 + r}, 100 ${100 + r} C ${100 - r * 0.6} ${100 + r}, ${100 - r} ${100 + r * 0.4}, ${100 - r} 100 C ${100 - r} ${100 - r * 0.3}, ${100 - r * 0.7} ${100 - r}, 100 ${100 - r} Z`}
-              stroke="#D6437A"
+              stroke="#E88C38"
               strokeWidth="1.2"
             />
           ))}
@@ -61,7 +61,7 @@ export default async function Sidebar() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="font-display font-bold text-lg tracking-tight text-lift flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-lift shadow-[0_0_12px_#D6437A]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-lift shadow-[0_0_12px_#E88C38]" />
                 MountLift
               </div>
               <div className="text-[10px] uppercase tracking-[0.2em] text-muted mt-1 font-mono">Agency Ops Console</div>

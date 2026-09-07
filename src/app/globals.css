@@ -3,28 +3,28 @@
   --font-sans: var(--font-sans, "Geist", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif);
   --font-mono: var(--font-mono, "Geist Mono", "Consolas", "SFMono-Regular", monospace);
   
-  /* MountLift.agency Color System */
-  --color-ink: rgba(28, 11, 25, 0.76);
-  --color-panel: rgba(45, 18, 40, 0.58);
-  --color-line: rgba(214, 67, 122, 0.22);
+  /* MountLift Executive Neutral Color System (Sunset Amber/Orange & Terracotta Copper) */
+  --color-ink: rgba(20, 15, 22, 0.82);
+  --color-panel: rgba(34, 27, 37, 0.65);
+  --color-line: rgba(232, 140, 56, 0.22);
   --color-paper: #FBF6EE;
-  --color-lift: #D6437A; /* Signature MountLift Berry/Magenta */
-  --color-amber: #F0997B; /* Warm MountLift Coral/Salmon */
-  --color-muted: #BFA8B8; /* Muted Soft Rose/Plum */
+  --color-lift: #E88C38; /* Vibrant Warm Sunset Orange / Gold */
+  --color-amber: #D96B43; /* Rich Terracotta / Copper */
+  --color-muted: #BBAEB9; /* Soft Muted Warm Sand */
   
-  --glass-shadow: 0 20px 48px rgba(23, 7, 21, 0.45);
+  --glass-shadow: 0 20px 48px rgba(14, 10, 16, 0.5);
   --glass-highlight: rgba(255, 255, 255, 0.12);
 }
 
 :root[data-theme="light"] {
-  --color-ink: rgba(251, 246, 238, 0.88);
-  --color-panel: rgba(255, 255, 255, 0.82);
-  --color-line: rgba(214, 67, 122, 0.22);
-  --color-paper: #280C22;
-  --color-lift: #D6437A;
-  --color-amber: #E27B5A;
-  --color-muted: #7A5B70;
-  --glass-shadow: 0 18px 46px rgba(58, 23, 48, 0.08);
+  --color-ink: rgba(251, 246, 238, 0.92);
+  --color-panel: rgba(255, 255, 255, 0.85);
+  --color-line: rgba(232, 140, 56, 0.22);
+  --color-paper: #1F1721;
+  --color-lift: #D97424;
+  --color-amber: #C5562E;
+  --color-muted: #6E5F6B;
+  --glass-shadow: 0 18px 46px rgba(40, 25, 38, 0.08);
   --glass-highlight: rgba(255, 255, 255, 0.7);
 }
 
@@ -36,18 +36,18 @@ html {
   min-height: 100%;
   scroll-behavior: smooth;
   background:
-    radial-gradient(1000px 700px at 8% -15%, rgba(214, 67, 122, 0.22), transparent 58%),
-    radial-gradient(900px 650px at 92% 10%, rgba(240, 153, 123, 0.16), transparent 54%),
-    linear-gradient(160deg, #170A15 0%, #260E20 44%, #180816 100%);
+    radial-gradient(1000px 700px at 8% -15%, rgba(232, 140, 56, 0.22), transparent 58%),
+    radial-gradient(900px 650px at 92% 10%, rgba(217, 107, 67, 0.18), transparent 54%),
+    linear-gradient(160deg, #120E13 0%, #1F1922 44%, #141016 100%);
   background-attachment: fixed;
   transition: background 500ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html[data-theme="light"] {
   background:
-    radial-gradient(900px 620px at 0% -12%, rgba(214, 67, 122, 0.12), transparent 60%),
-    radial-gradient(900px 640px at 100% 0%, rgba(240, 153, 123, 0.15), transparent 58%),
-    linear-gradient(160deg, #FBF6EE 0%, #F7EFF5 48%, #F2E8F0 100%);
+    radial-gradient(900px 620px at 0% -12%, rgba(232, 140, 56, 0.14), transparent 60%),
+    radial-gradient(900px 640px at 100% 0%, rgba(217, 107, 67, 0.15), transparent 58%),
+    linear-gradient(160deg, #FBF6EE 0%, #F6EFEA 48%, #F0E6E0 100%);
 }
 
 body {
@@ -65,8 +65,8 @@ body::before {
   inset: 0;
   pointer-events: none;
   background: 
-    radial-gradient(circle at 75% -10%, rgba(214, 67, 122, 0.14), transparent 35%), 
-    radial-gradient(circle at 15% 100%, rgba(240, 153, 123, 0.1), transparent 38%);
+    radial-gradient(circle at 75% -10%, rgba(232, 140, 56, 0.14), transparent 35%), 
+    radial-gradient(circle at 15% 100%, rgba(217, 107, 67, 0.12), transparent 38%);
   z-index: -1;
 }
 
@@ -84,7 +84,7 @@ body::before {
 }
 
 .card:hover {
-  border-color: color-mix(in srgb, var(--color-lift) 40%, var(--color-line));
+  border-color: color-mix(in srgb, var(--color-lift) 45%, var(--color-line));
 }
 
 .glass-card { 
@@ -121,7 +121,7 @@ body::before {
 .input:focus {
   outline: none;
   border-color: var(--color-lift);
-  box-shadow: 0 0 0 3px rgba(214, 67, 122, 0.25);
+  box-shadow: 0 0 0 3px rgba(232, 140, 56, 0.25);
 }
 
 .input::placeholder {
@@ -129,14 +129,14 @@ body::before {
 }
 
 .btn {
-  background: linear-gradient(135deg, #D6437A 0%, #E8558B 100%);
+  background: linear-gradient(135deg, #E88C38 0%, #F09B4D 100%);
   color: #FFFFFF;
   border-radius: 10px;
   padding: 0.55rem 1.15rem;
   font-weight: 600;
   font-size: 0.875rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 10px 24px rgba(214, 67, 122, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 10px 24px rgba(232, 140, 56, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.35);
   transition: opacity 250ms cubic-bezier(0.16, 1, 0.3, 1), 
               transform 250ms cubic-bezier(0.16, 1, 0.3, 1), 
               box-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -145,7 +145,7 @@ body::before {
 .btn:hover {
   opacity: 0.95;
   transform: translateY(-1.5px);
-  box-shadow: 0 12px 28px rgba(214, 67, 122, 0.42);
+  box-shadow: 0 12px 28px rgba(232, 140, 56, 0.42);
 }
 
 .btn:active {
@@ -177,7 +177,7 @@ body::before {
 .quick-link:hover { 
   border-color: var(--color-lift); 
   color: var(--color-lift); 
-  background-color: rgba(214, 67, 122, 0.12); 
+  background-color: rgba(232, 140, 56, 0.12); 
   transform: translateY(-1.5px); 
 }
 
@@ -195,7 +195,7 @@ body::before {
 }
 
 .table-row:hover {
-  background-color: rgba(214, 67, 122, 0.08);
+  background-color: rgba(232, 140, 56, 0.08);
 }
 
 .bg-panel,
