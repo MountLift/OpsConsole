@@ -9,15 +9,15 @@ import { CampaignStatus } from "@prisma/client";
 import { requireContext, brandScope, campaignScope } from "@/lib/access";
 
 function money(n: number) {
-  return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  return n.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
 }
 
 function statusPill(status: CampaignStatus) {
   switch (status) {
-    case "ACTIVE": return "bg-lift/10 text-lift border-lift/20";
+    case "ACTIVE": return "bg-lift/15 text-lift border-lift/30";
     case "PLANNING": return "bg-paper/10 text-paper border-paper/20";
-    case "COMPLETE": return "bg-lift/20 text-lift border-lift/30";
-    case "CANCELLED": return "bg-amber/10 text-amber border-amber/20";
+    case "COMPLETE": return "bg-lift/25 text-lift border-lift/40";
+    case "CANCELLED": return "bg-amber/15 text-amber border-amber/30";
     default: return "bg-panel text-muted border-line";
   }
 }
@@ -64,7 +64,7 @@ export default async function CampaignsPage({
   const hasFilter = Boolean(query || statusFilter);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-up">
       {role === "ADMIN" && <div>
         <h1 className="text-2xl font-display font-bold tracking-tight mb-1">Campaigns</h1>
         <p className="text-sm text-muted">Every campaign, linked to its brand and deliverables.</p>
@@ -77,7 +77,7 @@ export default async function CampaignsPage({
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="card p-4 flex items-center justify-between">
+        <div className="card p-4 flex items-center justify-between transition-all duration-300 hover:-translate-y-0.5">
           <div>
             <div className="text-xs text-muted font-medium mb-1">Active Campaigns</div>
             <div className="text-2xl font-display font-semibold text-lift">{activeCount}</div>
@@ -89,7 +89,7 @@ export default async function CampaignsPage({
           </div>
         </div>
         {showMoney && (
-          <div className="card p-4 flex items-center justify-between">
+          <div className="card p-4 flex items-center justify-between transition-all duration-300 hover:-translate-y-0.5">
             <div>
               <div className="text-xs text-muted font-medium mb-1">Total Allocated Budget</div>
               <div className="text-2xl font-display font-semibold text-paper">
@@ -103,7 +103,7 @@ export default async function CampaignsPage({
             </div>
           </div>
         )}
-        <div className="card p-4 flex items-center justify-between">
+        <div className="card p-4 flex items-center justify-between transition-all duration-300 hover:-translate-y-0.5">
           <div>
             <div className="text-xs text-muted font-medium mb-1">Total Campaigns</div>
             <div className="text-2xl font-display font-semibold text-lift">{campaigns.length}</div>
@@ -173,9 +173,9 @@ export default async function CampaignsPage({
                 </Link>
                 <div className="flex items-center gap-6">
                   {showMoney ? (
-                    <div className="text-right">
-                      <div className="text-lift font-mono font-medium">{money(Number(c.budget))}</div>
-                      <div className={`text-xs font-mono ${profit >= 0 ? "text-muted" : "text-amber"}`}>
+                    <div className="text-right font-mono">
+                      <div className="text-lift font-semibold">{money(Number(c.budget))}</div>
+                      <div className={`text-xs ${profit >= 0 ? "text-muted" : "text-amber"}`}>
                         {profit >= 0 ? "+" : ""}{money(profit)} profit
                       </div>
                     </div>

@@ -12,7 +12,7 @@ import { createInvoice, createPayout } from "@/app/finance/actions";
 import { CalendarPlus } from "lucide-react";
 
 function money(n: number) {
-  return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  return n.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
 }
 
 function googleCalendarUrl(title: string, dueDate: Date, details: string) {
@@ -54,7 +54,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
   const profit = totalInvoiced - totalPayouts;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-up">
       {/* Breadcrumb */}
       <div>
         <Link href="/campaigns" className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-lift mb-3 transition-colors">
@@ -125,10 +125,10 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
       {role === "ADMIN" && <section className="glass-card p-5 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div><p className="eyebrow">Campaign finance</p><h2 className="text-lg font-display font-semibold">Invoice the brand</h2></div>
-          <span className="text-xs text-muted">{campaign.invoices.length} invoice{campaign.invoices.length === 1 ? "" : "s"} · {money(totalInvoiced)} invoiced</span>
+          <span className="text-xs text-muted font-mono">{campaign.invoices.length} invoice{campaign.invoices.length === 1 ? "" : "s"} · {money(totalInvoiced)} invoiced</span>
         </div>
         <form action={createInvoice.bind(null, campaign.brandId, campaign.id)} className="flex flex-col sm:flex-row gap-3">
-          <label className="flex-1"><span className="sr-only">Invoice amount</span><input className="input" name="amount" type="number" min="0" step="0.01" required defaultValue={Number(campaign.budget)} placeholder="Invoice amount" /></label>
+          <label className="flex-1"><span className="sr-only">Invoice amount</span><input className="input font-mono" name="amount" type="number" min="0" step="0.01" required defaultValue={Number(campaign.budget)} placeholder="Invoice amount in ₹" /></label>
           <button className="btn px-5">Create invoice</button>
         </form>
       </section>}
@@ -168,13 +168,13 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
                 <div className="flex flex-wrap items-center gap-3 sm:gap-6">
                   {showMoney && (
                     <div className="text-right">
-                      <div className="text-lift font-mono font-medium">{money(Number(d.agreedRate))}</div>
+                      <div className="text-lift font-mono font-semibold">{money(Number(d.agreedRate))}</div>
                       <div className="text-[10px] text-muted font-mono uppercase">Agreed Rate</div>
                     </div>
                   )}
                   {role === "ADMIN" && d.payouts.length === 0 && (
                     <form action={createPayout.bind(null, d.id, campaign.id)} className="flex items-center gap-2">
-                      <input className="input w-28 py-1.5 text-xs" name="amount" type="number" min="0" step="0.01" defaultValue={Number(d.agreedRate)} aria-label={`Payout amount for ${d.creator.name}`} />
+                      <input className="input w-28 py-1.5 text-xs font-mono" name="amount" type="number" min="0" step="0.01" defaultValue={Number(d.agreedRate)} aria-label={`Payout amount for ${d.creator.name}`} />
                       <button className="btn btn-small whitespace-nowrap">Create payout</button>
                     </form>
                   )}

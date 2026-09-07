@@ -4,7 +4,7 @@ import { markPayoutPaid, markInvoicePaid, updateInvoice, updatePayout } from "./
 import { requireAccess } from "@/lib/require-access";
 
 function money(n: number) {
-  return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  return n.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
 }
 
 export default async function FinancePage({
@@ -59,7 +59,7 @@ export default async function FinancePage({
   const exportUrl = `/api/export/finance${hasFilter ? `?q=${encodeURIComponent(query)}&status=${encodeURIComponent(statusFilter)}` : ""}`;
 
   return (
-    <div className="space-y-8 finance-shell">
+    <div className="space-y-8 finance-shell animate-fade-up">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -68,7 +68,7 @@ export default async function FinancePage({
         </div>
         <a
           href={exportUrl}
-          className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-md bg-lift text-ink hover:opacity-90 transition-opacity w-fit"
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-md bg-lift text-white hover:opacity-90 transition-opacity w-fit shadow-md"
           download
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -80,7 +80,7 @@ export default async function FinancePage({
 
       {/* Summary Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="glass-card p-5">
+        <div className="glass-card p-5 transition-all duration-300 hover:-translate-y-0.5">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-muted font-medium">To pay creators</span>
             {totalPayable > 0 && <span className="p-2 rounded-lg bg-amber/10 border border-amber/20 text-amber">
@@ -92,7 +92,7 @@ export default async function FinancePage({
           <div className={`text-2xl font-display font-semibold ${totalPayable > 0 ? "text-amber" : "text-lift"}`}>{money(totalPayable)}</div>
           <p className="text-xs text-muted mt-1">Amount your team still needs to pay creators</p>
         </div>
-        <div className="glass-card p-5">
+        <div className="glass-card p-5 transition-all duration-300 hover:-translate-y-0.5">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-muted font-medium">To collect from brands</span>
             <span className="p-2 rounded-lg bg-lift/10 border border-lift/20 text-lift">
@@ -145,24 +145,24 @@ export default async function FinancePage({
                     <span className={p.status === "PAID" ? "text-lift" : "text-amber"}>{p.status}</span>
                   </div>
                   <details className="mt-2 group">
-                    <summary className="cursor-pointer text-xs text-muted hover:text-lift list-none">Edit payout <span className="group-open:hidden">+</span><span className="hidden group-open:inline">−</span></summary>
-                    <form action={updatePayout.bind(null, p.id)} className="mt-3 flex flex-wrap items-center gap-2" >
-                      <input className="input w-28 py-1.5 text-xs" name="amount" type="number" min="0" step="0.01" defaultValue={Number(p.amount)} aria-label="Payout amount" required />
+                    <summary className="cursor-pointer text-xs text-muted hover:text-lift list-none transition-colors">Edit payout <span className="group-open:hidden">+</span><span className="hidden group-open:inline">−</span></summary>
+                    <form action={updatePayout.bind(null, p.id)} className="mt-3 flex flex-wrap items-center gap-2">
+                      <input className="input w-32 py-1.5 text-xs font-mono" name="amount" type="number" min="0" step="0.01" defaultValue={Number(p.amount)} aria-label="Payout amount" required />
                       <select className="input w-32 py-1.5 text-xs" name="status" defaultValue={p.status}><option value="PENDING">Pending</option><option value="APPROVED">Approved</option><option value="PAID">Paid</option></select>
                       <button className="btn btn-small">Save</button>
                     </form>
                   </details>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="font-mono text-paper font-medium">{money(Number(p.amount))}</div>
+                  <div className="font-mono text-paper font-semibold">{money(Number(p.amount))}</div>
                   {p.status !== "PAID" ? (
                     <form action={markPayoutPaid.bind(null, p.id)}>
-                      <button className="text-xs font-medium text-lift hover:underline bg-lift/10 border border-lift/20 px-2.5 py-1 rounded" type="submit">
+                      <button className="text-xs font-medium text-lift hover:underline bg-lift/10 border border-lift/20 px-2.5 py-1 rounded transition-colors" type="submit">
                         Mark Paid
                       </button>
                     </form>
                   ) : (
-                    <span className="text-xs font-mono text-lift px-2.5 py-1 bg-lift/10 rounded">✓ Paid</span>
+                    <span className="text-xs font-mono text-lift px-2.5 py-1 bg-lift/10 border border-lift/20 rounded">✓ Paid</span>
                   )}
                 </div>
               </div>
@@ -193,24 +193,24 @@ export default async function FinancePage({
                     <span className={i.status === "PAID" ? "text-lift" : "text-amber"}>{i.status}</span>
                   </div>
                   <details className="mt-2 group">
-                    <summary className="cursor-pointer text-xs text-muted hover:text-lift list-none">Edit invoice <span className="group-open:hidden">+</span><span className="hidden group-open:inline">−</span></summary>
+                    <summary className="cursor-pointer text-xs text-muted hover:text-lift list-none transition-colors">Edit invoice <span className="group-open:hidden">+</span><span className="hidden group-open:inline">−</span></summary>
                     <form action={updateInvoice.bind(null, i.id)} className="mt-3 flex flex-wrap items-center gap-2">
-                      <input className="input w-28 py-1.5 text-xs" name="amount" type="number" min="0" step="0.01" defaultValue={Number(i.amount)} aria-label="Invoice amount" required />
+                      <input className="input w-32 py-1.5 text-xs font-mono" name="amount" type="number" min="0" step="0.01" defaultValue={Number(i.amount)} aria-label="Invoice amount" required />
                       <select className="input w-32 py-1.5 text-xs" name="status" defaultValue={i.status}><option value="DRAFT">Draft</option><option value="SENT">Sent</option><option value="PAID">Paid</option><option value="OVERDUE">Overdue</option></select>
                       <button className="btn btn-small">Save</button>
                     </form>
                   </details>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="font-mono text-paper font-medium">{money(Number(i.amount))}</div>
+                  <div className="font-mono text-paper font-semibold">{money(Number(i.amount))}</div>
                   {i.status !== "PAID" ? (
                     <form action={markInvoicePaid.bind(null, i.id)}>
-                      <button className="text-xs font-medium text-lift hover:underline bg-lift/10 border border-lift/20 px-2.5 py-1 rounded" type="submit">
+                      <button className="text-xs font-medium text-lift hover:underline bg-lift/10 border border-lift/20 px-2.5 py-1 rounded transition-colors" type="submit">
                         Mark Paid
                       </button>
                     </form>
                   ) : (
-                    <span className="text-xs font-mono text-lift px-2.5 py-1 bg-lift/10 rounded">✓ Paid</span>
+                    <span className="text-xs font-mono text-lift px-2.5 py-1 bg-lift/10 border border-lift/20 rounded">✓ Paid</span>
                   )}
                 </div>
               </div>
