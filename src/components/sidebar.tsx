@@ -11,16 +11,16 @@ export default async function Sidebar() {
 
   return (
     <>
-      <header className="sticky top-0 z-20 border-b border-line bg-panel/80 backdrop-blur-2xl md:hidden">
+      <header className="sticky top-0 z-20 border-b border-line bg-paper md:hidden">
         <details className="group">
           <summary className="list-none px-4 py-3 transition-colors hover:bg-panel">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <div className="font-display font-bold text-base tracking-tight text-lift flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-lift shadow-[0_0_10px_#E88C38]" />
+                <div className="font-display font-bold text-base tracking-tight text-paper flex items-center gap-1.5">
+                  <span className="w-6 h-6 rounded-[7px] bg-lift text-white flex items-center justify-center text-[10px] font-sans">ml</span>
                   MountLift
                 </div>
-                <div className="text-[10px] uppercase tracking-[0.18em] text-muted mt-0.5">Ops Console</div>
+                <div className="text-[10px] tracking-[0.1em] text-muted mt-0.5">agency ops console</div>
               </div>
               <span className="rounded-full border border-lift/40 bg-lift/10 px-2.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-lift">
                 Menu
@@ -40,7 +40,7 @@ export default async function Sidebar() {
         </details>
       </header>
 
-      <aside className="hidden md:flex w-64 shrink-0 border-r border-line bg-panel/60 backdrop-blur-2xl h-screen sticky top-0 flex-col relative overflow-hidden shadow-[16px_0_45px_rgba(14,10,16,0.4)]">
+      <aside className="hidden md:flex w-64 shrink-0 bg-[#421b38] text-[#fff8f2] h-screen sticky top-0 flex-col relative overflow-hidden shadow-[8px_0_30px_rgba(63,24,53,0.12)]">
         {/* Topographic contour-line watermark — MountLift Sunset Orange signature */}
         <svg
           className="absolute -top-8 -right-16 w-64 h-64 opacity-[0.08] pointer-events-none"
@@ -51,34 +51,30 @@ export default async function Sidebar() {
             <path
               key={r}
               d={`M 100 ${100 - r} C ${100 + r * 0.9} ${100 - r}, ${100 + r} ${100 - r * 0.3}, ${100 + r} 100 C ${100 + r} ${100 + r * 0.5}, ${100 + r * 0.4} ${100 + r}, 100 ${100 + r} C ${100 - r * 0.6} ${100 + r}, ${100 - r} ${100 + r * 0.4}, ${100 - r} 100 C ${100 - r} ${100 - r * 0.3}, ${100 - r * 0.7} ${100 - r}, 100 ${100 - r} Z`}
-              stroke="#E88C38"
+              stroke="#f7a4bd"
               strokeWidth="1.2"
             />
           ))}
         </svg>
 
-        <div className="px-5 py-6 border-b border-line relative">
+        <div className="px-5 py-6 border-b border-white/10 relative">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <div className="font-display font-bold text-lg tracking-tight text-lift flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-lift shadow-[0_0_12px_#E88C38]" />
+              <div className="font-display font-bold text-lg tracking-tight text-white flex items-center gap-2">
+                <span className="w-7 h-7 rounded-[8px] bg-[#ed4d80] text-white flex items-center justify-center text-xs font-sans">ml</span>
                 MountLift
               </div>
-              <div className="text-[10px] uppercase tracking-[0.2em] text-muted mt-1 font-mono">Agency Ops Console</div>
+              <div className="text-[10px] tracking-[0.1em] text-[#d6afc5] mt-1 font-mono">agency ops console</div>
             </div>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-lift/40 bg-lift/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.16em] text-lift">
-              <span className="h-1.5 w-1.5 rounded-full bg-lift shadow-[0_0_8px_currentColor]" />
-              Live
-            </span>
           </div>
-          <div className="mt-3">
+          <div className="mt-5">
             <RoleBadge role={role} />
           </div>
         </div>
 
         <SidebarNav links={links} />
 
-        <div className="px-4 py-3 border-t border-line flex items-center justify-between gap-3 relative bg-ink/40">
+        <div className="px-4 py-3 border-t border-white/10 flex items-center justify-between gap-3 relative bg-black/10">
           <ThemeToggle iconOnly />
           <div className="flex items-center">
             <UserButton afterSignOutUrl="/sign-in" />
