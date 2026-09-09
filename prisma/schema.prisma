@@ -136,8 +136,19 @@ model Campaign {
   createdAt    DateTime       @default(now())
   deliverables Deliverable[]
   invoices     Invoice[]
+  messages     CampaignMessage[]
 }
 
+model CampaignMessage {
+  id             String   @id @default(cuid())
+  campaign       Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaignId     String
+  senderClerkId  String
+  body           String
+  createdAt      DateTime @default(now())
+
+  @@index([campaignId, createdAt])
+}
 model Deliverable {
   id          String            @id @default(cuid())
   campaign    Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
