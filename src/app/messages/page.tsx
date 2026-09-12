@@ -1,8 +1,15 @@
 import Link from "next/link";
+import { clerkClient } from "@clerk/nextjs/server";
 import { LockKeyhole, MessageCircle, Send } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { campaignScope, requireContext } from "@/lib/access";
 import { sendCampaignMessage } from "./actions";
+import MessageList from "./message-list";
+import MarkRead from "./mark-read";
+
+function userDisplayName(user: { firstName: string | null; lastName: string | null; username: string | null; primaryEmailAddress: { emailAddress: string } | null }) {
+  return [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || user.primaryEmailAddress?.emailAddress || "Unknown user";
+}
 
 export default async function MessagesPage({ searchParams }: { searchParams?: { campaign?: string } }) {
   const context = await requireContext();
@@ -20,6 +27,10 @@ export default async function MessagesPage({ searchParams }: { searchParams?: { 
   const messages = selected
     ? await prisma.campaignMessage.findMany({ where: { campaignId: selected.id }, orderBy: { createdAt: "asc" } })
     : [];
+  const senderIds = Array.from(new Set(messages.map((message) => message.senderClerkId)));
+  const clerk = senderIds.length ? await clerkClient() : null;
+  const senderUsers = clerk ? await clerk.users.getUserList({ userId: senderIds, limit: senderIds.length }) : { data: [] };
+  const senderNames = new Map(senderUsers.data.map((user) => [user.id, userDisplayName(user)]));
   const creatorNames = selected ? Array.from(new Set(selected.deliverables.map((item) => item.creator.name))) : [];
 
   return (
@@ -60,11 +71,9 @@ export default async function MessagesPage({ searchParams }: { searchParams?: { 
               <Link href={`/campaigns/${selected.id}`} className="text-xs font-semibold text-lift hover:underline">View brief ↗</Link>
             </div>
             <div className="flex-1 space-y-5 overflow-y-auto bg-[#fcf8f3] px-5 py-6 sm:px-8">
-              {messages.length === 0 ? <div className="flex h-full min-h-64 flex-col items-center justify-center text-center"><MessageCircle size={26} className="mb-3 text-lift" /><p className="text-sm font-semibold text-paper">Start the campaign room</p><p className="mt-1 max-w-xs text-xs text-muted">Share a brief note with the people assigned to this campaign.</p></div> : messages.map((message) => {
-                const own = message.senderClerkId === context.clerkUserId;
-                return <div key={message.id} className={`flex ${own ? "justify-end" : "justify-start"}`}><div className={`max-w-[80%] ${own ? "items-end" : "items-start"} flex flex-col`}><span className="mb-1 text-[10px] font-mono text-muted">{own ? "You" : "Campaign team"}</span><div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${own ? "rounded-br-sm bg-paper text-white" : "rounded-bl-sm bg-[#f0e4db] text-paper"}`}>{message.body}</div><time className="mt-1 text-[10px] font-mono text-muted">{message.createdAt.toLocaleString("en-IN", { hour: "numeric", minute: "2-digit" })}</time></div></div>;
-              })}
+              {messages.length === 0 ? <div className="flex h-full min-h-64 flex-col items-center justify-center text-center"><MessageCircle size={26} className="mb-3 text-lift" /><p className="text-sm font-semibold text-paper">Start the campaign room</p><p className="mt-1 max-w-xs text-xs text-muted">Share a brief note with the people assigned to this campaign.</p></div> : <MessageList messages={messages.map((message) => ({ id: message.id, senderName: senderNames.get(message.senderClerkId) ?? (message.senderClerkId === context.clerkUserId ? "You" : "Unknown user"), own: message.senderClerkId === context.clerkUserId, body: message.body, createdAt: message.createdAt.toISOString() }))} />}
             </div>
+            <MarkRead campaignId={selected.id} />
             <form action={sendCampaignMessage.bind(null, selected.id)} className="flex gap-2 border-t border-line bg-panel p-4 sm:p-5"><label className="sr-only" htmlFor="message-body">Message</label><textarea id="message-body" name="body" required maxLength={2000} rows={2} placeholder="Write a note to this campaign room…" className="input min-h-12 resize-none" /><button className="btn self-end px-4" aria-label="Send message" title="Send message"><Send size={15} /></button></form>
           </> : <div className="flex flex-1 flex-col items-center justify-center p-8 text-center"><MessageCircle size={28} className="mb-3 text-lift" /><p className="font-display text-xl font-semibold text-paper">No campaign rooms yet</p><p className="mt-1 text-sm text-muted">Rooms appear when a campaign is assigned to your side of the work.</p></div>}
         </section>

@@ -30,7 +30,7 @@ function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export default function SidebarNav({ links, mobile = false }: { links: LinkItem[]; mobile?: boolean }) {
+export default function SidebarNav({ links, mobile = false, unreadMessageCount = 0 }: { links: LinkItem[]; mobile?: boolean; unreadMessageCount?: number }) {
   const pathname = usePathname();
   return (
     <nav className={mobile ? "space-y-1" : "flex-1 px-3 py-8 space-y-1 relative"}>
@@ -48,7 +48,7 @@ export default function SidebarNav({ links, mobile = false }: { links: LinkItem[
             }`}
           >
             <Icon size={17} strokeWidth={active ? 2.25 : 1.8} className="transition-transform duration-300 group-hover:scale-105" />
-            <span>{link.label}</span>
+            <span className="flex min-w-0 flex-1 items-center justify-between gap-2"><span>{link.label}</span>{link.label === "Messages" && unreadMessageCount > 0 && <span aria-label={`${unreadMessageCount} unread messages`} className="min-w-5 rounded-full bg-[#ed4d80] px-1.5 py-0.5 text-center text-[10px] font-bold leading-none text-white">{unreadMessageCount > 99 ? "99+" : unreadMessageCount}</span>}</span>
           </Link>
         );
       })}

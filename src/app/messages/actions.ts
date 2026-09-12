@@ -22,3 +22,21 @@ export async function sendCampaignMessage(campaignId: string, formData: FormData
   revalidatePath("/messages");
   revalidatePath(`/campaigns/${campaignId}`);
 }
+
+export async function markCampaignMessagesRead(campaignId: string) {
+  const context = await requireContext();
+  const campaign = await prisma.campaign.findFirst({
+    where: { id: campaignId, ...campaignScope(context) },
+    select: { id: true },
+  });
+  if (!campaign) return;
+
+  await prisma.campaignMessageRead.upsert({
+    where: { campaignId_clerkUserId: { campaignId: campaign.id, clerkUserId: context.clerkUserId } },
+    create: { campaignId: campaign.id, clerkUserId: context.clerkUserId },
+    update: { lastReadAt: new Date() },
+  });
+
+  revalidatePath("/messages");
+  revalidatePath("/", "layout");
+}

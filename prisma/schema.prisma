@@ -137,6 +137,7 @@ model Campaign {
   deliverables Deliverable[]
   invoices     Invoice[]
   messages     CampaignMessage[]
+  messageReads CampaignMessageRead[]
 }
 
 model CampaignMessage {
@@ -148,6 +149,18 @@ model CampaignMessage {
   createdAt      DateTime @default(now())
 
   @@index([campaignId, createdAt])
+}
+
+model CampaignMessageRead {
+  id          String   @id @default(cuid())
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaignId  String
+  clerkUserId String
+  lastReadAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([campaignId, clerkUserId])
+  @@index([clerkUserId])
 }
 model Deliverable {
   id          String            @id @default(cuid())

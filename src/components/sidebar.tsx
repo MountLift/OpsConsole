@@ -1,4 +1,6 @@
 import { UserButton } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
+import { getUnreadMessageCount } from "@/lib/message-notifications";
 import { getRole } from "@/lib/get-role";
 import { navLinksForRole } from "@/lib/roles";
 import RoleBadge from "./role-badge";
@@ -8,6 +10,8 @@ import SidebarNav from "./sidebar-nav";
 export default async function Sidebar() {
   const role = await getRole();
   const links = navLinksForRole(role);
+  const session = await auth();
+  const unreadMessageCount = role && session.userId ? await getUnreadMessageCount({ role, clerkUserId: session.userId }) : 0;
 
   return (
     <>
@@ -29,7 +33,7 @@ export default async function Sidebar() {
           </summary>
           <div className="border-t border-line px-4 py-3 space-y-3 bg-panel/90">
             <RoleBadge role={role} />
-            <SidebarNav links={links} mobile />
+            <SidebarNav links={links} mobile unreadMessageCount={unreadMessageCount} />
             <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
               <ThemeToggle />
               <div className="flex items-center gap-2">
@@ -72,7 +76,7 @@ export default async function Sidebar() {
           </div>
         </div>
 
-        <SidebarNav links={links} />
+        <SidebarNav links={links} unreadMessageCount={unreadMessageCount} />
 
         <div className="px-4 py-3 border-t border-white/10 flex items-center justify-between gap-3 relative bg-black/10">
           <ThemeToggle iconOnly />
